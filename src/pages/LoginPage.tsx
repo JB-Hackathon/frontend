@@ -16,7 +16,7 @@ function LoginPage() {
       <div className="bg-white rounded-2xl shadow-sm w-full max-w-md px-10 py-10">
         <div className="flex items-center gap-3 mb-8">
           <img src={jbLogo} alt="JB 준법자문" className="w-12 h-12 shrink-0" />
-          <span className="text-[#1B3A6B] font-bold text-xl">JB 준법자문 워크스페이스</span>
+          <span className="text-[#1B3A6B] font-bold text-xl">Compliance JB</span>
         </div>
 
         <div className="mb-6">

@@ -1,11 +1,23 @@
 import { useState } from 'react';
+import Dropdown from '../components/Dropdown';
 
 type UserType = 'creator' | 'advisor';
+
+const JB_AFFILIATES = [
+  { value: 'jeonbuk-bank', label: '전북은행' },
+  { value: 'gwangju-bank', label: '광주은행' },
+  { value: 'jb-woori-capital', label: 'JB우리캐피탈' },
+  { value: 'jb-asset-management', label: 'JB자산운용' },
+  { value: 'jb-investment', label: 'JB금융지주' },
+  { value: 'ppbank', label: 'JB인베스트먼트' },
+  { value: 'ppbank', label: '기타' },
+];
 
 function RegisterPage() {
   const [userType, setUserType] = useState<UserType>('creator');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [affiliate, setAffiliate] = useState('');
   const [department, setDepartment] = useState('');
   const [team, setTeam] = useState('');
   const [password, setPassword] = useState('');
@@ -80,6 +92,16 @@ function RegisterPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="홍길동"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">업권</label>
+            <Dropdown
+              options={JB_AFFILIATES}
+              value={affiliate}
+              onChange={setAffiliate}
+              placeholder="소속 계열사를 선택하세요"
             />
           </div>
 
