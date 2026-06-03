@@ -1,17 +1,9 @@
 import { useState } from 'react';
-import Dropdown from '../components/Dropdown';
+import Dropdown from '../components/common/Dropdown';
+import jbLogo from '@/assets/JB-mark-B-monogram.svg';
+import { JB_AFFILIATES } from '@/utils/constants/JB';
 
 type UserType = 'creator' | 'advisor';
-
-const JB_AFFILIATES = [
-  { value: 'jeonbuk-bank', label: '전북은행' },
-  { value: 'gwangju-bank', label: '광주은행' },
-  { value: 'jb-woori-capital', label: 'JB우리캐피탈' },
-  { value: 'jb-asset-management', label: 'JB자산운용' },
-  { value: 'jb-investment', label: 'JB금융지주' },
-  { value: 'ppbank', label: 'JB인베스트먼트' },
-  { value: 'ppbank', label: '기타' },
-];
 
 function RegisterPage() {
   const [userType, setUserType] = useState<UserType>('creator');
@@ -56,7 +48,7 @@ function RegisterPage() {
                   />
                   <span className="font-bold text-sm text-gray-900">콘텐츠 제작자</span>
                 </div>
-                <p className="text-xs text-gray-500 pl-5 leading-relaxed">
+                <p className="text-xs text-gray-500 leading-relaxed">
                   마케팅·홍보 콘텐츠를 업로드하고 심의 결과를 확인
                 </p>
               </label>
@@ -77,7 +69,7 @@ function RegisterPage() {
                   />
                   <span className="font-bold text-sm text-gray-900">준법자문가</span>
                 </div>
-                <p className="text-xs text-gray-500 pl-5 leading-relaxed">
+                <p className="text-xs text-gray-500 leading-relaxed">
                   업로드된 콘텐츠를 검토하고 피드백 작성
                 </p>
               </label>
