@@ -1,14 +1,26 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import jbLogo from '@/assets/JB-mark-B-monogram.svg';
+import { useAuth } from '@/contexts/AuthContext';
+import type { UserRole } from '@/types/dashboard';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [mockRole, setMockRole] = useState<UserRole>('creator');
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    login({
+      name: '김지원',
+      role: mockRole,
+      team: '마케팅본부 브랜드팀',
+    });
+    navigate('/dashboard');
   };
 
   return (
@@ -63,6 +75,28 @@ function LoginPage() {
             <a href="#" className="text-sm text-gray-500 hover:underline">
               비밀번호 찾기
             </a>
+          </div>
+
+          {/* Dev-only role switcher */}
+          <div className="rounded-lg border border-dashed border-gray-300 p-3">
+            <p className="text-xs text-gray-400 mb-2">개발용 역할 선택</p>
+            <div className="flex gap-3">
+              {(['creator', 'advisor'] as UserRole[]).map((r) => (
+                <label key={r} className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="mockRole"
+                    value={r}
+                    checked={mockRole === r}
+                    onChange={() => setMockRole(r)}
+                    className="accent-[#1B3A6B]"
+                  />
+                  <span className="text-sm text-gray-600">
+                    {r === 'creator' ? '콘텐츠 제작자' : '준법자문가'}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
 
           <button

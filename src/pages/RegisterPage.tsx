@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Dropdown from '../components/common/Dropdown';
-import jbLogo from '@/assets/JB-mark-B-monogram.svg';
 import { JB_AFFILIATES } from '@/utils/constants/JB';
 
 type UserType = 'creator' | 'advisor';

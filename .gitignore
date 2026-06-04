@@ -48,3 +48,4 @@ Thumbs.db
 # 7. 테스트 결과물 (Testing)
 coverage/
 *.lcov
+.vercel
