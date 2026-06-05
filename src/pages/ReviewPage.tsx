@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ContentPanel from '@/components/review/ContentPanel';
 import ReviewPanel from '@/components/review/ReviewPanel';
 import ChatPanel from '@/components/review/ChatPanel';
@@ -15,6 +15,7 @@ interface DragState {
 }
 
 export default function ReviewPage() {
+  const navigate = useNavigate();
   const [leftWidth, setLeftWidth] = useState(DEFAULT_LEFT_WIDTH);
   const [rightWidth, setRightWidth] = useState(DEFAULT_RIGHT_WIDTH);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
@@ -92,7 +93,10 @@ export default function ReviewPage() {
           <button className="px-3 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap">
             초안으로 되돌리기
           </button>
-          <button className="px-4 py-1.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors whitespace-nowrap">
+          <button
+            onClick={() => navigate('/editor')}
+            className="px-4 py-1.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors whitespace-nowrap"
+          >
             에디터로 이동하기
           </button>
         </div>

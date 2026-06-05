@@ -79,12 +79,22 @@ export default function ContentTable({ items, role }: Props) {
                 <StatusBadge status={item.status} />
               </td>
               <td className="px-4 py-4">
-                <button
-                  onClick={() => navigate(`/review/${item.id}`)}
-                  className="text-xs text-[#1B3A6B] font-medium hover:underline whitespace-nowrap"
-                >
-                  상세 ›
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate(`/content/${item.id}`)}
+                    className="text-xs text-[#1B3A6B] font-medium hover:underline whitespace-nowrap"
+                  >
+                    상세 ›
+                  </button>
+                  {role === 'advisor' && (
+                    <button
+                      onClick={() => navigate(`/review/${item.id}`)}
+                      className="text-xs text-gray-400 font-medium hover:text-[#1B3A6B] hover:underline whitespace-nowrap"
+                    >
+                      검토 ›
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}

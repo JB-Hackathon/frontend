@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { ContentType, UserRole } from '@/types/dashboard';
 
 const CONTENT_TYPES: { value: ContentType | 'all'; label: string }[] = [
@@ -14,7 +14,13 @@ type SortOption = 'latest' | 'title' | 'submitted';
 
 interface Props {
   role: UserRole;
-  onFilter?: (types: (ContentType | 'all')[], sort: SortOption, myOnly: boolean, query: string) => void;
+  onFilter?: (types: (ContentType | 'all')[], sort: SortOption, myOnly: boolean, query: string, dateFrom: string, dateTo: string) => void;
+}
+
+function formatDate(value: string) {
+  if (!value) return '';
+  const [y, m, d] = value.split('-');
+  return `${y}.${m}.${d}`;
 }
 
 export default function FilterSection({ role, onFilter }: Props) {
@@ -22,6 +28,44 @@ export default function FilterSection({ role, onFilter }: Props) {
   const [selectedTypes, setSelectedTypes] = useState<(ContentType | 'all')[]>(['all']);
   const [sort, setSort] = useState<SortOption>('latest');
   const [myOnly, setMyOnly] = useState(false);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempFrom, setTempFrom] = useState('');
+  const [tempTo, setTempTo] = useState('');
+  const datePickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
+        setShowDatePicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const openDatePicker = () => {
+    setTempFrom(dateFrom);
+    setTempTo(dateTo);
+    setShowDatePicker(true);
+  };
+
+  const applyDate = () => {
+    setDateFrom(tempFrom);
+    setDateTo(tempTo);
+    setShowDatePicker(false);
+    onFilter?.(selectedTypes, sort, myOnly, query, tempFrom, tempTo);
+  };
+
+  const clearDate = () => {
+    setTempFrom('');
+    setTempTo('');
+    setDateFrom('');
+    setDateTo('');
+    setShowDatePicker(false);
+    onFilter?.(selectedTypes, sort, myOnly, query, '', '');
+  };
 
   const toggleType = (type: ContentType | 'all') => {
     let next: (ContentType | 'all')[];
@@ -32,26 +76,35 @@ export default function FilterSection({ role, onFilter }: Props) {
       next = selectedTypes.includes(type) ? (without.length ? without : ['all']) : [...without, type];
     }
     setSelectedTypes(next);
-    onFilter?.(next, sort, myOnly, query);
+    onFilter?.(next, sort, myOnly, query, dateFrom, dateTo);
   };
 
   const handleSort = (s: SortOption) => {
     setSort(s);
-    onFilter?.(selectedTypes, s, myOnly, query);
+    onFilter?.(selectedTypes, s, myOnly, query, dateFrom, dateTo);
   };
 
   const handleMyOnly = () => {
     setMyOnly((v) => {
-      onFilter?.(selectedTypes, sort, !v, query);
+      onFilter?.(selectedTypes, sort, !v, query, dateFrom, dateTo);
       return !v;
     });
   };
 
   const handleSearch = () => {
-    onFilter?.(selectedTypes, sort, myOnly, query);
+    onFilter?.(selectedTypes, sort, myOnly, query, dateFrom, dateTo);
   };
 
   const myOnlyLabel = role === 'advisor' ? '내 담당만 보기' : '내 콘텐츠만 보기';
+
+  const dateLabel =
+    dateFrom && dateTo
+      ? `${formatDate(dateFrom)} ~ ${formatDate(dateTo)}`
+      : dateFrom
+      ? `${formatDate(dateFrom)} ~`
+      : dateTo
+      ? `~ ${formatDate(dateTo)}`
+      : null;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
@@ -81,15 +134,70 @@ export default function FilterSection({ role, onFilter }: Props) {
         >
           검색
         </button>
-        <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-sm text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">
-          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <span className="text-gray-400">——</span>
-          <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+
+        {/* Date range picker */}
+        <div className="relative" ref={datePickerRef}>
+          <button
+            onClick={openDatePicker}
+            className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm transition-colors ${
+              dateLabel
+                ? 'border-[#1B3A6B] text-[#1B3A6B] bg-blue-50 hover:bg-blue-100'
+                : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <svg className={`w-4 h-4 ${dateLabel ? 'text-[#1B3A6B]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className={dateLabel ? 'text-[#1B3A6B] font-medium' : 'text-gray-400'}>
+              {dateLabel ?? '기간 선택'}
+            </span>
+            <svg className={`w-3 h-3 ${dateLabel ? 'text-[#1B3A6B]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showDatePicker && (
+            <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-4 w-72">
+              <p className="text-xs font-semibold text-gray-500 mb-3">기간 선택</p>
+              <div className="space-y-2.5">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">시작일</label>
+                  <input
+                    type="date"
+                    value={tempFrom}
+                    max={tempTo || undefined}
+                    onChange={(e) => setTempFrom(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">종료일</label>
+                  <input
+                    type="date"
+                    value={tempTo}
+                    min={tempFrom || undefined}
+                    onChange={(e) => setTempTo(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={clearDate}
+                  className="flex-1 py-2 text-sm text-gray-500 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  초기화
+                </button>
+                <button
+                  onClick={applyDate}
+                  className="flex-1 py-2 text-sm text-white bg-[#1B3A6B] rounded-lg hover:bg-[#152d55] transition-colors font-semibold"
+                >
+                  적용
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* My only toggle */}
         <label className="flex items-center gap-2 cursor-pointer ml-1">
@@ -164,7 +272,9 @@ export default function FilterSection({ role, onFilter }: Props) {
             setSelectedTypes(['all']);
             setSort('latest');
             setMyOnly(false);
-            onFilter?.(['all'], 'latest', false, '');
+            setDateFrom('');
+            setDateTo('');
+            onFilter?.(['all'], 'latest', false, '', '', '');
           }}
           className="flex items-center gap-1.5 text-sm text-[#1B3A6B] hover:underline"
         >

@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AppNavbar from '@/components/layout/AppNavbar';
 import StatusCard from '@/components/dashboard/StatusCard';
+import AdvisorStatusCard from '@/components/dashboard/AdvisorStatusCard';
 import FilterSection from '@/components/dashboard/FilterSection';
 import ContentTable from '@/components/dashboard/ContentTable';
 import Pagination from '@/components/common/Pagination';
-import { statusSummary, contentItems } from '@/utils/dashboardDummyData';
+import { statusSummary, advisorSummary, contentItems } from '@/utils/dashboardDummyData';
 
 const PAGE_SIZE = 10;
 
@@ -21,7 +22,7 @@ export default function DashboardPage() {
   const totalPages = Math.max(1, Math.ceil(statusSummary.total / PAGE_SIZE));
   const pagedItems = filteredItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  const pageTitle = role === 'advisor' ? '팀 콘텐츠 심의 현황' : '팀 콘텐츠 심의 현황';
+  const pageTitle = role === 'advisor' ? '검토 대기 리스트' : '팀 콘텐츠 심의 현황';
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -55,39 +56,71 @@ export default function DashboardPage() {
         <section>
           <h2 className="text-sm font-semibold text-gray-500 mb-3">심의 상태별 현황</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <StatusCard
-              label="검토 대기"
-              count={statusSummary.pending}
-              description="심의 진행 전 콘텐츠"
-              tag="반려 후 재제출 포함"
-              accentColor="border-t-amber-400"
-            />
-            <StatusCard
-              label="검토 진행"
-              count={statusSummary.reviewing}
-              description="심의가 진행 중인 콘텐츠"
-              accentColor="border-t-sky-400"
-            />
-            <StatusCard
-              label="승인"
-              count={statusSummary.approved}
-              description="심의 완료 · 발행 가능"
-              accentColor="border-t-emerald-400"
-            />
-            <StatusCard
-              label="반려"
-              count={statusSummary.rejected}
-              description="재작성 필요"
-              tag="재제출 시 → 검토 대기 이동"
-              accentColor="border-t-red-400"
-            />
+            {role === 'advisor' ? (
+              <>
+                <AdvisorStatusCard
+                  label="검토 대기"
+                  value={advisorSummary.pending}
+                  unit="건"
+                  badge={{ text: '대기', variant: 'amber' }}
+                />
+                <AdvisorStatusCard
+                  label="오늘 처리 완료"
+                  value={advisorSummary.todayDone}
+                  unit="건"
+                  badge={{ text: '완료', variant: 'green' }}
+                  sub={`승인 ${advisorSummary.todayApproved} / 반려 ${advisorSummary.todayRejected}`}
+                />
+                <AdvisorStatusCard
+                  label="평균 처리 시간"
+                  value={advisorSummary.avgDays}
+                  unit="일"
+                  hint="목표 1.5일 이내"
+                />
+                <AdvisorStatusCard
+                  label="재제출 검토"
+                  value={advisorSummary.resubmit}
+                  unit="건"
+                  badge={{ text: '검토중', variant: 'slate' }}
+                />
+              </>
+            ) : (
+              <>
+                <StatusCard
+                  label="검토 대기"
+                  count={statusSummary.pending}
+                  description="심의 진행 전 콘텐츠"
+                  tag="반려 후 재제출 포함"
+                  accentColor="border-t-amber-400"
+                />
+                <StatusCard
+                  label="검토 진행"
+                  count={statusSummary.reviewing}
+                  description="심의가 진행 중인 콘텐츠"
+                  accentColor="border-t-sky-400"
+                />
+                <StatusCard
+                  label="승인"
+                  count={statusSummary.approved}
+                  description="심의 완료 · 발행 가능"
+                  accentColor="border-t-emerald-400"
+                />
+                <StatusCard
+                  label="반려"
+                  count={statusSummary.rejected}
+                  description="재작성 필요"
+                  tag="재제출 시 → 검토 대기 이동"
+                  accentColor="border-t-red-400"
+                />
+              </>
+            )}
           </div>
         </section>
 
         {/* Filter */}
         <FilterSection
           role={role}
-          onFilter={(types, sort, myOnly, query) => {
+          onFilter={(types, sort, myOnly, query, dateFrom, dateTo) => {
             let result = [...contentItems];
 
             if (!types.includes('all')) {
@@ -110,6 +143,13 @@ export default function DashboardPage() {
                   ? item.advisor === myName
                   : item.creator === myName
               );
+            }
+
+            if (dateFrom) {
+              result = result.filter((item) => item.submittedAt >= dateFrom);
+            }
+            if (dateTo) {
+              result = result.filter((item) => item.submittedAt <= dateTo);
             }
 
             if (sort === 'title') {

@@ -5,6 +5,8 @@ import RegisterPage from '@/pages/RegisterPage';
 import ReviewPage from '@/pages/ReviewPage';
 import DashboardPage from '@/pages/DashboardPage';
 import UploadPage from '@/pages/UploadPage';
+import ContentDetailPage from '@/pages/ContentDetailPage';
+import EditorPage from '@/pages/EditorPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -24,8 +26,11 @@ function AppRoutes() {
       <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
+      <Route path="/content/:id" element={<ProtectedRoute><ContentDetailPage /></ProtectedRoute>} />
       <Route path="/review" element={<ProtectedRoute><ReviewPage /></ProtectedRoute>} />
       <Route path="/review/:id" element={<ProtectedRoute><ReviewPage /></ProtectedRoute>} />
+      <Route path="/editor" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
+      <Route path="/editor/:id" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
       <Route path="*" element={<div className="min-h-screen flex items-center justify-center text-gray-500">404 Not Found</div>} />
     </Routes>
   );
