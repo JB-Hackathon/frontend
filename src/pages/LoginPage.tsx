@@ -19,6 +19,7 @@ function LoginPage() {
       name: '김지원',
       role: mockRole,
       team: '마케팅본부 브랜드팀',
+      affiliate: 'jeonbuk-bank',
     });
     navigate('/dashboard');
   };

@@ -3,11 +3,11 @@ import type { ContentType, UserRole } from '@/types/dashboard';
 
 const CONTENT_TYPES: { value: ContentType | 'all'; label: string }[] = [
   { value: 'all', label: '전체' },
-  { value: 'sns', label: 'SNS 카드뉴스' },
-  { value: 'banner', label: '웹 배너' },
-  { value: 'video', label: '영상 스크립트' },
-  { value: 'blog', label: '블로그 포스트' },
-  { value: 'ebook', label: 'e-book' },
+  { value: 'homepage', label: '홈페이지' },
+  { value: 'sns', label: 'SNS' },
+  { value: 'sms', label: '문자' },
+  { value: 'kakao', label: '카카오톡' },
+  { value: 'other', label: '기타' },
 ];
 
 type SortOption = 'latest' | 'title' | 'submitted';

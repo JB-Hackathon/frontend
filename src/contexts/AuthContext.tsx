@@ -5,6 +5,7 @@ interface AuthUser {
   name: string;
   role: UserRole;
   team: string;
+  affiliate?: string;
 }
 
 interface AuthContextValue {

@@ -2,7 +2,7 @@ export type UserRole = 'creator' | 'advisor';
 
 export type ContentStatus = 'pending' | 'reviewing' | 'approved' | 'rejected';
 
-export type ContentType = 'sns' | 'banner' | 'video' | 'blog' | 'ebook' | 'other';
+export type ContentType = 'homepage' | 'sns' | 'sms' | 'kakao' | 'other';
 
 export interface ContentItem {
   id: string;

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AppNavbar from '@/components/layout/AppNavbar';
 import StatusCard from '@/components/dashboard/StatusCard';
@@ -11,6 +12,7 @@ const PAGE_SIZE = 10;
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const role = user?.role ?? 'creator';
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,7 +38,10 @@ export default function DashboardPage() {
               팀 변경
             </button>
             {role === 'creator' && (
-              <button className="px-4 py-2 text-sm bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors font-semibold flex items-center gap-1.5">
+              <button
+                onClick={() => navigate('/upload')}
+                className="px-4 py-2 text-sm bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors font-semibold flex items-center gap-1.5"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                 </svg>
