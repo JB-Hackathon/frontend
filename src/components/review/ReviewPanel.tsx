@@ -1,8 +1,77 @@
 
+import { useState, useEffect } from 'react';
 import { AISummaryButton } from './AISummaryButton';
 import { feedbackDetail } from '../../utils/reviewDummyData';
 
+function ReviewPanelSkeleton() {
+  return (
+    <div className="max-w-2xl mx-auto px-6 py-6 space-y-4">
+      {/* Panel header */}
+      <div>
+        <div className="flex items-center gap-2 mb-0.5">
+          <h2 className="text-base font-bold text-gray-900">준법 피드백</h2>
+          <span className="text-[11px] font-semibold px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">
+            v2
+          </span>
+        </div>
+        <p className="text-sm text-gray-400">직접 수정은 2차 페이지에서 가능합니다.</p>
+      </div>
+
+
+      {/* 종합 의견 */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+          <div className="h-4 w-20 rounded skeleton-shimmer" />
+          <div className="h-6 w-16 rounded-full skeleton-shimmer" />
+        </div>
+        <div className="p-5">
+          <div className="h-16 rounded-lg skeleton-shimmer" />
+        </div>
+      </div>
+
+      {/* 피드백 상세 */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+          <div className="h-4 w-20 rounded skeleton-shimmer" />
+          <div className="h-6 w-16 rounded-full skeleton-shimmer" />
+        </div>
+        <div className="px-5 py-5 space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="h-3.5 w-32 rounded skeleton-shimmer" />
+              <div className="h-3 w-full rounded skeleton-shimmer" />
+              <div className="h-3 w-full rounded skeleton-shimmer" />
+              <div className="h-3 w-2/3 rounded skeleton-shimmer" />
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2 px-5 pb-5">
+          <div className="h-8 w-36 rounded-lg skeleton-shimmer" />
+          <div className="h-8 w-24 rounded-lg skeleton-shimmer" />
+        </div>
+      </div>
+
+      {/* 제작자에게 전달할 한 줄 요약 */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+        <div className="h-4 w-44 rounded skeleton-shimmer" />
+        <div className="h-12 rounded-lg skeleton-shimmer" />
+      </div>
+    </div>
+  );
+}
+
 export default function ReviewPanel() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <ReviewPanelSkeleton />;
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-6 py-6 space-y-4">
       {/* Panel header */}

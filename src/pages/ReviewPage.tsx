@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import ContentPanel from '@/components/review/ContentPanel';
 import ReviewPanel from '@/components/review/ReviewPanel';
 import ChatPanel from '@/components/review/ChatPanel';
+import { updateContentStatus } from '@/services/reviewService';
 
 const MIN_PANEL_WIDTH = 200;
 const DEFAULT_LEFT_WIDTH = 300;
@@ -16,6 +17,7 @@ interface DragState {
 
 export default function ReviewPage() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [leftWidth, setLeftWidth] = useState(DEFAULT_LEFT_WIDTH);
   const [rightWidth, setRightWidth] = useState(DEFAULT_RIGHT_WIDTH);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
@@ -87,10 +89,16 @@ export default function ReviewPage() {
 
         {/* Right actions */}
         <div className="flex items-center gap-2 shrink-0">
-          <button className="px-3 py-1.5 text-xs border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap">
+          <button
+            onClick={() => id && updateContentStatus(id, 'rejected').then(() => navigate('/dashboard'))}
+            className="px-3 py-1.5 text-xs border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap"
+          >
             반려로 처리
           </button>
-          <button className="px-3 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap">
+          <button
+            onClick={() => id && updateContentStatus(id, 'pending').then(() => navigate('/dashboard'))}
+            className="px-3 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+          >
             초안으로 되돌리기
           </button>
           <button
@@ -117,7 +125,7 @@ export default function ReviewPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
-            <span className="text-[10px] text-gray-400 leading-tight" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+            <span className="text-[10px] text-gray-400 leading-tight" style={{ writingMode: 'vertical-rl' }}>
               원본 콘텐츠
             </span>
           </div>
@@ -165,8 +173,8 @@ export default function ReviewPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <span className="text-[10px] text-gray-400" style={{ writingMode: 'vertical-rl' }}>
-              AI 자문
+            <span className="text-[10px] text-gray-400" style={{ writingMode: 'vertical-rl'}}>
+              자문 채팅
             </span>
           </div>
         ) : (

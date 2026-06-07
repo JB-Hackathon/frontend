@@ -11,6 +11,8 @@ import {
   ADVISORS,
 } from '@/utils/constants/upload';
 import { useAuth } from '@/contexts/AuthContext';
+import { uploadContent, saveDraft } from '@/services/contentService';
+import type { ContentType } from '@/types/dashboard';
 
 type Composition = 'image' | 'text' | 'both';
 
@@ -45,6 +47,31 @@ export default function UploadPage() {
 
   const affiliatePlaceholder =
     JB_AFFILIATES.find((a) => a.value === user?.affiliate)?.label ?? '소속 업권을 선택하세요';
+
+  const buildPayload = () => ({
+    affiliate,
+    language,
+    category,
+    financialSub: category === 'financial' ? financialSub : undefined,
+    channel: channel as ContentType,
+    advisorId: advisor !== 'auto' ? advisor : undefined,
+    composition,
+    title,
+    publishDate: publishDate || undefined,
+    campaign: campaign || undefined,
+    caption: composition !== 'image' ? caption : undefined,
+    note: note || undefined,
+    images: composition !== 'text' ? images : undefined,
+  });
+
+  const handleSubmit = async () => {
+    const item = await uploadContent(buildPayload());
+    navigate(`/content/${item.id}`);
+  };
+
+  const handleSaveDraft = async () => {
+    await saveDraft(buildPayload());
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -369,12 +396,14 @@ export default function UploadPage() {
               </div>
               <button
                 type="button"
+                onClick={handleSubmit}
                 className="w-full bg-[#1B3A6B] text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-[#152d55] transition-colors"
               >
                 심의 요청 제출
               </button>
               <button
                 type="button"
+                onClick={handleSaveDraft}
                 className="w-full bg-white text-gray-700 border border-gray-300 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
               >
                 임시 저장

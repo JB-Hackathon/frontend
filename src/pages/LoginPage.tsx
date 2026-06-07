@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import jbLogo from '@/assets/JB-mark-B-monogram.svg';
 import { useAuth } from '@/contexts/AuthContext';
+import { login as loginApi } from '@/services/auth/authService';
 import type { UserRole } from '@/types/dashboard';
 
 function LoginPage() {
@@ -13,13 +14,14 @@ function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const res = await loginApi({ email, password });
     login({
-      name: '김지원',
-      role: mockRole,
-      team: '마케팅본부 브랜드팀',
-      affiliate: 'jeonbuk-bank',
+      name: res.user.name,
+      role: import.meta.env.DEV ? mockRole : res.user.role,
+      team: res.user.team,
+      affiliate: res.user.affiliate,
     });
     navigate('/dashboard');
   };

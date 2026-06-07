@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AppNavbar from '@/components/layout/AppNavbar';
@@ -7,7 +7,13 @@ import AdvisorStatusCard from '@/components/dashboard/AdvisorStatusCard';
 import FilterSection from '@/components/dashboard/FilterSection';
 import ContentTable from '@/components/dashboard/ContentTable';
 import Pagination from '@/components/common/Pagination';
-import { statusSummary, advisorSummary, contentItems } from '@/utils/dashboardDummyData';
+import {
+  getStatusSummary,
+  getAdvisorSummary,
+  getContentList,
+} from '@/services/dashboardService';
+import type { StatusSummary, ContentItem, ContentType } from '@/types/dashboard';
+import type { AdvisorSummary, ContentListParams } from '@/types/api';
 
 const PAGE_SIZE = 10;
 
@@ -17,10 +23,34 @@ export default function DashboardPage() {
   const role = user?.role ?? 'creator';
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredItems, setFilteredItems] = useState(contentItems);
+  const [totalItems, setTotalItems] = useState(0);
+  const [pagedItems, setPagedItems] = useState<ContentItem[]>([]);
+  const [statusSummary, setStatusSummary] = useState<StatusSummary | null>(null);
+  const [advisorSummary, setAdvisorSummary] = useState<AdvisorSummary | null>(null);
+  const [filterParams, setFilterParams] = useState<ContentListParams>({
+    sortBy: 'latest',
+    page: 1,
+    pageSize: PAGE_SIZE,
+  });
 
-  const totalPages = Math.max(1, Math.ceil(statusSummary.total / PAGE_SIZE));
-  const pagedItems = filteredItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+
+  useEffect(() => {
+    if (role === 'advisor') {
+      getAdvisorSummary().then(setAdvisorSummary);
+    } else {
+      getStatusSummary().then(setStatusSummary);
+    }
+  }, [role]);
+
+  useEffect(() => {
+    getContentList({ ...filterParams, page: currentPage, role, userName: user?.name }).then(
+      (res) => {
+        setPagedItems(res.items);
+        setTotalItems(res.total);
+      },
+    );
+  }, [filterParams, currentPage, role, user?.name]);
 
   const pageTitle = role === 'advisor' ? '검토 대기 리스트' : '팀 콘텐츠 심의 현황';
 
@@ -32,7 +62,7 @@ export default function DashboardPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
-            <p className="text-sm text-gray-400 mt-0.5">총 {statusSummary.total}건</p>
+            <p className="text-sm text-gray-400 mt-0.5">총 {totalItems}건</p>
           </div>
           <div className="flex items-center gap-2">
             <button className="px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-medium">
@@ -60,26 +90,26 @@ export default function DashboardPage() {
               <>
                 <AdvisorStatusCard
                   label="검토 대기"
-                  value={advisorSummary.pending}
+                  value={advisorSummary?.pending ?? 0}
                   unit="건"
                   badge={{ text: '대기', variant: 'amber' }}
                 />
                 <AdvisorStatusCard
                   label="오늘 처리 완료"
-                  value={advisorSummary.todayDone}
+                  value={advisorSummary?.todayDone ?? 0}
                   unit="건"
                   badge={{ text: '완료', variant: 'green' }}
-                  sub={`승인 ${advisorSummary.todayApproved} / 반려 ${advisorSummary.todayRejected}`}
+                  sub={`승인 ${advisorSummary?.todayApproved ?? 0} / 반려 ${advisorSummary?.todayRejected ?? 0}`}
                 />
                 <AdvisorStatusCard
                   label="평균 처리 시간"
-                  value={advisorSummary.avgDays}
+                  value={advisorSummary?.avgDays ?? 0}
                   unit="일"
                   hint="목표 1.5일 이내"
                 />
                 <AdvisorStatusCard
                   label="재제출 검토"
-                  value={advisorSummary.resubmit}
+                  value={advisorSummary?.resubmit ?? 0}
                   unit="건"
                   badge={{ text: '검토중', variant: 'slate' }}
                 />
@@ -88,26 +118,26 @@ export default function DashboardPage() {
               <>
                 <StatusCard
                   label="검토 대기"
-                  count={statusSummary.pending}
+                  count={statusSummary?.pending ?? 0}
                   description="심의 진행 전 콘텐츠"
                   tag="반려 후 재제출 포함"
                   accentColor="border-t-amber-400"
                 />
                 <StatusCard
                   label="검토 진행"
-                  count={statusSummary.reviewing}
+                  count={statusSummary?.reviewing ?? 0}
                   description="심의가 진행 중인 콘텐츠"
                   accentColor="border-t-sky-400"
                 />
                 <StatusCard
                   label="승인"
-                  count={statusSummary.approved}
+                  count={statusSummary?.approved ?? 0}
                   description="심의 완료 · 발행 가능"
                   accentColor="border-t-emerald-400"
                 />
                 <StatusCard
                   label="반려"
-                  count={statusSummary.rejected}
+                  count={statusSummary?.rejected ?? 0}
                   description="재작성 필요"
                   tag="재제출 시 → 검토 대기 이동"
                   accentColor="border-t-red-400"
@@ -121,46 +151,15 @@ export default function DashboardPage() {
         <FilterSection
           role={role}
           onFilter={(types, sort, myOnly, query, dateFrom, dateTo) => {
-            let result = [...contentItems];
-
-            if (!types.includes('all')) {
-              result = result.filter((item) => types.includes(item.type));
-            }
-
-            if (query.trim()) {
-              const q = query.toLowerCase();
-              result = result.filter(
-                (item) =>
-                  item.title.toLowerCase().includes(q) ||
-                  item.id.toLowerCase().includes(q)
-              );
-            }
-
-            if (myOnly) {
-              const myName = user?.name ?? '';
-              result = result.filter((item) =>
-                role === 'advisor'
-                  ? item.advisor === myName
-                  : item.creator === myName
-              );
-            }
-
-            if (dateFrom) {
-              result = result.filter((item) => item.submittedAt >= dateFrom);
-            }
-            if (dateTo) {
-              result = result.filter((item) => item.submittedAt <= dateTo);
-            }
-
-            if (sort === 'title') {
-              result.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
-            } else if (sort === 'submitted') {
-              result.sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
-            } else {
-              result.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
-            }
-
-            setFilteredItems(result);
+            setFilterParams({
+              types: types.includes('all') ? undefined : (types as ContentType[]),
+              sortBy: sort,
+              myOnly,
+              query,
+              dateFrom,
+              dateTo,
+              pageSize: PAGE_SIZE,
+            });
             setCurrentPage(1);
           }}
         />

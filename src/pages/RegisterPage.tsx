@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Dropdown from '../components/common/Dropdown';
 import { JB_AFFILIATES } from '@/utils/constants/JB';
+import { register as registerApi } from '@/services/auth/authService';
 
 type UserType = 'creator' | 'advisor';
 
@@ -12,9 +13,12 @@ function RegisterPage() {
   const [department, setDepartment] = useState('');
   const [team, setTeam] = useState('');
   const [password, setPassword] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await registerApi({ userType, name, email, affiliate, department, team, password });
+    setSubmitted(true);
   };
 
   return (
@@ -147,12 +151,18 @@ function RegisterPage() {
             </p>
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-[#1B3A6B] text-white py-4 rounded-lg font-bold text-base hover:bg-[#152d55] transition-colors"
-          >
-            가입 신청
-          </button>
+          {submitted ? (
+            <div className="w-full py-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium text-center">
+              신청이 완료되었습니다. 관리자 승인 후 이메일로 안내됩니다.
+            </div>
+          ) : (
+            <button
+              type="submit"
+              className="w-full bg-[#1B3A6B] text-white py-4 rounded-lg font-bold text-base hover:bg-[#152d55] transition-colors"
+            >
+              가입 신청
+            </button>
+          )}
         </form>
       </div>
     </div>

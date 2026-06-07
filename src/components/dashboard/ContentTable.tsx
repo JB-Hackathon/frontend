@@ -89,9 +89,9 @@ export default function ContentTable({ items, role }: Props) {
                   {role === 'advisor' && (
                     <button
                       onClick={() => navigate(`/review/${item.id}`)}
-                      className="text-xs text-gray-400 font-medium hover:text-[#1B3A6B] hover:underline whitespace-nowrap"
+                      className="px-3 py-1.5 text-xs font-semibold text-white bg-[#1B3A6B] rounded-lg hover:bg-[#152d55] transition-colors whitespace-nowrap"
                     >
-                      검토 ›
+                      검토
                     </button>
                   )}
                 </div>

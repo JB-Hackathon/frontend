@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { saveReport, requestPublish } from '@/services/editorService';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TiptapLink from '@tiptap/extension-link';
@@ -33,6 +34,8 @@ const DEFAULT_RIGHT = 280;
 
 export default function EditorPage() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const contentId = id ?? 'C-0143';
   const [leftWidth, setLeftWidth] = useState(DEFAULT_LEFT);
   const [rightWidth, setRightWidth] = useState(DEFAULT_RIGHT);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
@@ -57,10 +60,12 @@ export default function EditorPage() {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[400px] text-gray-800',
       },
     },
-    onUpdate: () => {
+    onUpdate: ({ editor }) => {
       setSaveStatus('saving');
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => setSaveStatus('saved'), 1200);
+      saveTimer.current = setTimeout(() => {
+        saveReport(contentId, editor.getHTML()).then(() => setSaveStatus('saved'));
+      }, 1200);
     },
   });
 
@@ -176,7 +181,10 @@ export default function EditorPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          <button className="px-4 py-1.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors whitespace-nowrap">
+          <button
+            onClick={() => requestPublish(contentId).then(() => navigate('/dashboard'))}
+            className="px-4 py-1.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors whitespace-nowrap"
+          >
             Publish 요청
           </button>
         </div>
