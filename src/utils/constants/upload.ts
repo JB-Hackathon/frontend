@@ -11,7 +11,7 @@ export const CHANNELS: { value: ContentType; label: string }[] = [
 export const LANGUAGES = [
   { value: 'ko', label: '한국어' },
   { value: 'en', label: '영어' },
-  { value: 'ph', label: '필리핀어' },
+  { value: 'fil', label: '필리핀어' },
   { value: 'km', label: '캄보디아어' },
   { value: 'zh', label: '중국어' },
   { value: 'vi', label: '베트남어' },

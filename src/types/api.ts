@@ -4,31 +4,37 @@ export type { StatusSummary };
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
+export type ApiUserRole = 'content_creator' | 'compliance_advisor';
+
+export interface ApiResponse<T> {
+  data: T;
+  message: string;
+  status: number;
+}
+
+export interface AuthUserData {
+  userId: number;
+  email: string;
+  name: string;
+  role: ApiUserRole;
+  teamId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
 }
 
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    name: string;
-    role: UserRole;
-    team: string;
-    affiliate: string;
-  };
-}
+export type LoginResponse = AuthUserData;
 
 export interface RegisterRequest {
-  userType: UserRole;
-  name: string;
   email: string;
-  affiliate: string;
-  department: string;
-  team: string;
   password: string;
+  name: string;
+  role: ApiUserRole;
+  teamId: number;
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
@@ -63,6 +69,57 @@ export interface ContentListResponse {
   pageSize: number;
 }
 
+// POST /boards 요청 바디
+export interface CreateBoardRequest {
+  contentCreatorId: number;
+  complianceAdvisorId: number;
+  managementNumber: string;
+  reviewApprovalNumber: string | null;
+  title: string;
+  businessSector: 'bank' | 'credit_finance' | 'savings_bank' | 'financial_investment' | 'other';
+  channelType: 'homepage' | 'messenger' | 'sns' | 'other';
+  contentType: 'text' | 'file' | 'file_with_text';
+  contentCategory: 'product_ad' | 'brand_service_ad' | 'information' | 'other';
+  productCategory: 'deposit' | 'loan' | 'card_benefit' | 'auto_finance' | 'investment' | 'other';
+  languageCode: 'ko' | 'en' | 'fil' | 'km' | 'zh' | 'vi';
+  contentFilePath: string | null;
+  contentText: string;
+  contentDescription: string;
+}
+
+// GET /boards/all 응답 항목
+export interface BoardItem {
+  reviewId: number;
+  contentCreatorId: number;
+  complianceAdvisorId: number;
+  managementNumber: string;
+  reviewApprovalNumber: string | null;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// GET /reviews/board/{boardId}/all 응답 항목
+export interface ReviewVersionItem {
+  reviewId: number;
+  boardId: number;
+  versionNo: number;
+  businessSector: CreateBoardRequest['businessSector'];
+  channelType: CreateBoardRequest['channelType'];
+  contentType: CreateBoardRequest['contentType'];
+  contentCategory: CreateBoardRequest['contentCategory'];
+  productCategory: CreateBoardRequest['productCategory'];
+  languageCode: CreateBoardRequest['languageCode'];
+  contentFilePath: string | null;
+  contentText: string;
+  contentDescription: string;
+  reviewStatus: ContentStatus;
+  reviewComments: string | null;
+  reviewReports: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ─── Content Detail ──────────────────────────────────────────────────────────
 
 export interface ReviewOpinion {
@@ -94,7 +151,6 @@ export interface ContentDetail {
   advisor: string;
   creator: string;
   complianceNo: string;
-  reviews: ReviewVersion[];
   relatedContents: { id: string; title: string }[];
 }
 

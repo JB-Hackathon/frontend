@@ -6,6 +6,7 @@ export type ContentType = 'homepage' | 'sns' | 'sms' | 'kakao' | 'other';
 
 export interface ContentItem {
   id: string;
+  managementNumber: string;
   title: string;
   type: ContentType;
   typeLabel: string;

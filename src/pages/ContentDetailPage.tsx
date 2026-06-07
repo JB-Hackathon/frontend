@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AppNavbar from '@/components/layout/AppNavbar';
 import StatusBadge from '@/components/dashboard/StatusBadge';
-import { getContentDetail, deleteContent, downloadReport } from '@/services/contentService';
+import {
+  getContentDetail,
+  getReviewVersions,
+  deleteContent,
+  downloadReport,
+} from '@/services/contentService';
 import type { ContentDetail, ReviewVersion } from '@/types/api';
-import type { ContentStatus } from '@/types/dashboard';
+import type { ContentItem, ContentStatus } from '@/types/dashboard';
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -106,13 +111,20 @@ export default function ContentDetailPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   const role = user?.role ?? 'creator';
 
+  // DashboardPage에서 상세로 이동할 때 목록에 표시 중이던 항목을 함께 넘겨받아
+  // 헤더 영역을 즉시 채우는 데 사용 (목록과 상세의 데이터 정합성 보장)
+  const listItem = (location.state as { item?: ContentItem } | null)?.item;
+
   const [content, setContent] = useState<ContentDetail | null>(null);
+  const [reviews, setReviews] = useState<ReviewVersion[]>([]);
 
   useEffect(() => {
     if (!id) return;
     getContentDetail(id).then(setContent);
+    getReviewVersions(id).then(setReviews);
   }, [id]);
 
   const handleDownloadReport = async () => {
@@ -143,7 +155,7 @@ export default function ContentDetailPage() {
     );
   }
 
-  const finalReview = content.reviews.find((r) => r.status === 'approved' || r.status === 'rejected');
+  const finalReview = reviews.find((r) => r.status === 'approved' || r.status === 'rejected');
 
   const finalResultLabel: Record<ContentStatus, string> = {
     approved: '승인',
@@ -158,6 +170,14 @@ export default function ContentDetailPage() {
     reviewing: 'text-sky-600 bg-sky-50 border-sky-200',
     pending: 'text-amber-600 bg-amber-50 border-amber-200',
   };
+
+  // 대시보드 목록에서 넘어온 데이터를 우선 사용 (직접 진입 시 상세 조회 결과로 대체)
+  const headerManagementNumber = listItem?.managementNumber ?? content.id;
+  const headerStatus = listItem?.status ?? content.status;
+  const headerTitle = listItem?.title ?? content.title;
+  const headerTypeLabel = listItem?.typeLabel ?? content.typeLabel;
+  const headerSubmittedAt = listItem?.submittedAt ?? content.submittedAt;
+  const headerAdvisor = listItem ? listItem.advisor ?? '배정 대기' : content.advisor;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -177,20 +197,20 @@ export default function ContentDetailPage() {
         {/* Header */}
         <div className="space-y-3">
           <div className="flex items-center gap-2.5">
-            <span className="font-mono text-sm font-semibold text-gray-400">{content.id}</span>
-            <StatusBadge status={content.status} />
+            <span className="font-mono text-sm font-semibold text-gray-400">{headerManagementNumber}</span>
+            <StatusBadge status={headerStatus} />
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900">{content.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{headerTitle}</h1>
 
           <p className="text-sm text-gray-400 flex flex-wrap gap-x-2 gap-y-0.5 items-center">
-            <span>{content.typeLabel}</span>
+            <span>{headerTypeLabel}</span>
             <span className="text-gray-300">·</span>
             <span>{content.subType}</span>
             <span className="text-gray-300">·</span>
-            <span>제출 {content.submittedAt}</span>
+            <span>제출 {headerSubmittedAt}</span>
             <span className="text-gray-300">·</span>
-            <span>자문가 {content.advisor}</span>
+            <span>자문가 {headerAdvisor}</span>
             <span className="text-gray-300">·</span>
             <span>
               {content.status === 'approved' ? '최종 승인' : '최종 반려'} {content.finalAt}
@@ -265,14 +285,14 @@ export default function ContentDetailPage() {
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold text-gray-800">심의 의견</h2>
                 <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">
-                  총 {content.reviews.length}개
+                  총 {reviews.length}개
                 </span>
               </div>
               <span className="text-xs text-gray-400">최신순 · 항목 클릭 시 펼침</span>
             </div>
 
             <div>
-              {content.reviews.map((review, i) => (
+              {reviews.map((review, i) => (
                 <ReviewAccordionItem key={review.version} review={review} defaultOpen={i === 0} />
               ))}
             </div>

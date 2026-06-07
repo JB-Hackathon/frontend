@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import jbLogo from '@/assets/JB-mark-B-monogram.svg';
 import { useAuth } from '@/contexts/AuthContext';
-import { login as loginApi } from '@/services/auth/authService';
+import { login as loginApi, toUserRole } from '@/services/auth/authService';
 import type { UserRole } from '@/types/dashboard';
 
 function LoginPage() {
@@ -18,10 +18,9 @@ function LoginPage() {
     e.preventDefault();
     const res = await loginApi({ email, password });
     login({
-      name: res.user.name,
-      role: import.meta.env.DEV ? mockRole : res.user.role,
-      team: res.user.team,
-      affiliate: res.user.affiliate,
+      userId: res.userId,
+      name: res.name,
+      role: import.meta.env.DEV ? mockRole : toUserRole(res.role),
     });
     navigate('/dashboard');
   };

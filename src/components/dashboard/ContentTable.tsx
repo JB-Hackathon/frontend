@@ -62,7 +62,7 @@ export default function ContentTable({ items, role }: Props) {
                   onChange={() => toggleOne(item.id)}
                 />
               </td>
-              <td className="px-4 py-4 font-mono text-gray-400 text-xs">{item.id}</td>
+              <td className="px-4 py-4 font-mono text-gray-400 text-xs">{item.managementNumber}</td>
               <td className="px-4 py-4 font-medium text-gray-800">{item.title}</td>
               <td className="px-4 py-4 text-gray-500">{item.typeLabel}</td>
               <td className="px-4 py-4 text-gray-600">
@@ -81,7 +81,7 @@ export default function ContentTable({ items, role }: Props) {
               <td className="px-4 py-4">
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => navigate(`/content/${item.id}`)}
+                    onClick={() => navigate(`/content/${item.id}`, { state: { item } })}
                     className="text-xs text-[#1B3A6B] font-medium hover:underline whitespace-nowrap"
                   >
                     상세 ›

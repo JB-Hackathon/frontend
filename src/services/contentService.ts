@@ -1,6 +1,14 @@
 import { authClient } from '@/services/apiClient';
-import type { ContentDetail, UploadContentRequest, Advisor } from '@/types/api';
-import type { ContentItem } from '@/types/dashboard';
+import type {
+  Advisor,
+  ApiResponse,
+  ContentDetail,
+  CreateBoardRequest,
+  ReviewVersion,
+  ReviewVersionItem,
+  UploadContentRequest,
+} from '@/types/api';
+import type { ContentItem, ContentStatus } from '@/types/dashboard';
 
 // ─── 더미 데이터 ─────────────────────────────────────────────────────────────
 
@@ -16,63 +24,6 @@ const DUMMY_DETAIL: ContentDetail = {
   advisor: '박준법',
   creator: '김지원',
   complianceNo: 'JB-111111-111111',
-  reviews: [
-    {
-      version: 3,
-      label: '최종 승인',
-      status: 'approved',
-      date: '2026-05-18 14:22',
-      reviewer: '박준법 자문가',
-      summary: '광고 수정 사항 반영 완료. 최종 승인',
-      hasAISummary: true,
-      opinion: {
-        general:
-          '제출하신 카드뉴스는 광고심의규정 §4-2(우대금리 표기) 및 §6-1(단정적 표현 금지) 위반 요소가 모두 해소되었습니다. 발행하셔도 됩니다.',
-        items: [
-          '헤드라인의 우대금리 표기 옆에 우대조건(앱 가입·자동이체)이 추가되어 §4-2 요건을 충족합니다.',
-          '"누구나"·"놓치면 손해" 등 단정·불안 조성 표현이 모두 수정되어 §6-1 요건을 충족합니다.',
-          'CTA에 가입 채널이 명시되어 사내 가이드 G-2024-11도 함께 충족합니다.',
-        ],
-        regulations: [
-          '표시광고심의규정 §4-2 (우대금리 표기)',
-          '표시광고심의규정 §6-1 (단정적 표현 금지)',
-          '사내 마케팅 가이드 G-2024-11',
-        ],
-      },
-    },
-    {
-      version: 2,
-      label: '반려',
-      status: 'rejected',
-      date: '2026-05-17 17:05',
-      reviewer: '박준법 자문가',
-      summary: '카피 4건 수정 권고. 이미지 관련 권고 2건 함께 안내',
-      opinion: {
-        general:
-          '표시광고심의규정 §4-2(우대금리 표기) 및 §6-1(단정적 표현 금지)에 해당하는 위반 요소가 확인되었습니다. 아래 항목을 수정 후 재제출 해주시기 바랍니다.',
-        items: [
-          '헤드라인 "연 4.5% 우대금리"에 우대조건이 명시되지 않아 §4-2 위반에 해당합니다.',
-          '"누구나", "놓치면 손해" 등 단정적·불안 조성 표현은 §6-1에 따라 삭제 또는 완화가 필요합니다.',
-          'CTA 버튼에 가입 채널 명시 누락 — 사내 가이드 G-2024-11 기준 미충족.',
-          '3번째 카드 이미지 내 우대금리 수치가 본문과 불일치합니다. 통일 필요.',
-        ],
-        regulations: [
-          '표시광고심의규정 §4-2 (우대금리 표기)',
-          '표시광고심의규정 §6-1 (단정적 표현 금지)',
-          '사내 마케팅 가이드 G-2024-11',
-        ],
-      },
-    },
-    {
-      version: 1,
-      label: '최초 제출',
-      status: 'pending',
-      date: '2026-05-16 09:30',
-      reviewer: '김지원 대리(콘텐츠팀)',
-      summary: '초안 제출 · 자문가 배정 대기',
-      opinion: null,
-    },
-  ],
   relatedContents: [
     { id: 'C-0098', title: '동일 캠페인 메인 배너' },
     { id: 'C-0114', title: '동일 상품 푸시 문구' },
@@ -96,27 +47,40 @@ export async function getContentDetail(id: string): Promise<ContentDetail> {
   return data;
 }
 
+const REVIEW_STATUS_LABEL: Record<ContentStatus, string> = {
+  pending: '대기',
+  reviewing: '검토중',
+  approved: '승인',
+  rejected: '반려',
+};
+
 /**
- * UploadPage: 콘텐츠 심의 요청 제출 (이미지 포함 multipart/form-data)
+ * ContentDetailPage: 해당 심의(게시글)의 모든 버전 조회
  */
-export async function uploadContent(payload: UploadContentRequest): Promise<ContentItem> {
-  if (import.meta.env.DEV) {
-    return {
-      id: `C-${Date.now()}`,
-      title: payload.title,
-      type: payload.channel,
-      typeLabel: payload.channel,
-      advisor: null,
-      creator: '김지원',
-      submittedAt: new Date().toISOString().slice(0, 10),
-      status: 'pending',
-    };
-  }
-  const form = buildFormData(payload);
-  const { data } = await authClient.post<ContentItem>('/contents', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return data;
+export async function getReviewVersions(boardId: string | number): Promise<ReviewVersion[]> {
+  const { data } = await authClient.get<ApiResponse<ReviewVersionItem[]>>(
+    `/reviews/board/${boardId}/all`,
+  );
+  return data.data.map(mapReviewVersionItem).sort((a, b) => b.version - a.version);
+}
+
+function mapReviewVersionItem(item: ReviewVersionItem): ReviewVersion {
+  return {
+    version: item.versionNo,
+    label: REVIEW_STATUS_LABEL[item.reviewStatus],
+    status: item.reviewStatus,
+    date: item.createdAt.replace('T', ' ').slice(0, 16),
+    reviewer: '', // TODO: 응답에 자문가 이름 필드가 추가되면 매핑
+    summary: item.reviewComments ?? item.contentDescription,
+    opinion: null, // TODO: reviewComments/reviewReports 구조가 확정되면 종합·항목별 의견으로 매핑
+  };
+}
+
+/**
+ * UploadPage: 심의 요청 생성 (POST /boards)
+ */
+export async function createBoard(payload: CreateBoardRequest): Promise<void> {
+  await authClient.post('/boards', payload);
 }
 
 /**
@@ -126,6 +90,7 @@ export async function saveDraft(payload: UploadContentRequest): Promise<ContentI
   if (import.meta.env.DEV) {
     return {
       id: `C-DRAFT-${Date.now()}`,
+      managementNumber: `C-DRAFT-${Date.now()}`,
       title: payload.title,
       type: payload.channel,
       typeLabel: payload.channel,
@@ -150,7 +115,7 @@ export async function resubmitContent(
   payload: UploadContentRequest,
 ): Promise<ContentItem> {
   if (import.meta.env.DEV) {
-    return { ...DUMMY_DETAIL, id, status: 'pending', advisor: null };
+    return { ...DUMMY_DETAIL, id, managementNumber: id, status: 'pending', advisor: null };
   }
   const form = buildFormData(payload);
   const { data } = await authClient.post<ContentItem>(`/contents/${id}/resubmit`, form, {
@@ -160,11 +125,12 @@ export async function resubmitContent(
 }
 
 /**
- * ContentDetailPage: 콘텐츠 삭제
+ * ContentDetailPage: 심의 삭제
+ * id는 reviewId (대시보드 목록의 id와 동일)
  */
 export async function deleteContent(id: string): Promise<void> {
   if (import.meta.env.DEV) return;
-  await authClient.delete(`/contents/${id}`);
+  await authClient.delete(`/reviews/${id}`);
 }
 
 /**

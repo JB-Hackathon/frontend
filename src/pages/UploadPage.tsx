@@ -11,10 +11,62 @@ import {
   ADVISORS,
 } from '@/utils/constants/upload';
 import { useAuth } from '@/contexts/AuthContext';
-import { uploadContent, saveDraft } from '@/services/contentService';
+import { createBoard, saveDraft } from '@/services/contentService';
 import type { ContentType } from '@/types/dashboard';
+import type { CreateBoardRequest } from '@/types/api';
 
 type Composition = 'image' | 'text' | 'both';
+
+// 폼 내부 값 → 백엔드 enum 값 매핑 (business_sector / channel_type / content_type / content_category / product_category)
+const BUSINESS_SECTOR_BY_AFFILIATE: Record<string, CreateBoardRequest['businessSector']> = {
+  'jeonbuk-bank': 'bank',
+  'gwangju-bank': 'bank',
+  'jb-woori-capital': 'credit_finance',
+  'jb-asset-management': 'financial_investment',
+  'jb-investment': 'other',
+  ppbank: 'financial_investment',
+};
+
+const CHANNEL_TYPE_BY_CHANNEL: Record<string, CreateBoardRequest['channelType']> = {
+  homepage: 'homepage',
+  sns: 'sns',
+  sms: 'messenger',
+  kakao: 'messenger',
+  other: 'other',
+};
+
+const CONTENT_TYPE_BY_COMPOSITION: Record<Composition, CreateBoardRequest['contentType']> = {
+  text: 'text',
+  image: 'file',
+  both: 'file_with_text',
+};
+
+const CONTENT_CATEGORY_BY_CATEGORY: Record<string, CreateBoardRequest['contentCategory']> = {
+  financial: 'product_ad',
+  business: 'brand_service_ad',
+  info: 'information',
+  other: 'other',
+};
+
+const PRODUCT_CATEGORY_BY_FINANCIAL_SUB: Record<string, CreateBoardRequest['productCategory']> = {
+  deposit: 'deposit',
+  loan: 'loan',
+  card: 'card_benefit',
+  auto: 'auto_finance',
+  investment: 'investment',
+  protection: 'other',
+  other: 'other',
+};
+
+// TODO: 자문가 선택 UI가 숫자 ID 기반으로 바뀌면 advisor 선택값으로 교체
+const PLACEHOLDER_ADVISOR_ID = 2;
+
+// TODO: 서버가 관리번호를 채번하도록 바뀌면 제거
+function generateManagementNumber() {
+  const year = new Date().getFullYear();
+  const seq = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+  return `MGMT-${year}-${seq}`;
+}
 
 export default function UploadPage() {
   const { user } = useAuth();
@@ -33,7 +85,23 @@ export default function UploadPage() {
   const [caption, setCaption] = useState('');
   const [note, setNote] = useState('');
   const [images, setImages] = useState<File[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const validate = () => {
+    const next: Record<string, string> = {};
+    if (!affiliate) next.affiliate = '업권을 선택해주세요.';
+    if (!language) next.language = '언어를 선택해주세요.';
+    if (!category) next.category = '콘텐츠 유형을 선택해주세요.';
+    else if (category === 'financial' && !financialSub) next.financialSub = '세부 분류를 선택해주세요.';
+    if (!channel) next.channel = '채널을 선택해주세요.';
+    if (!title.trim()) next.title = '제목을 입력해주세요.';
+    if (composition !== 'image' && !caption.trim()) next.caption = '텍스트 / 카피를 입력해주세요.';
+    if (composition === 'image' && images.length === 0) next.images = '이미지를 첨부해주세요.';
+
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -65,8 +133,26 @@ export default function UploadPage() {
   });
 
   const handleSubmit = async () => {
-    const item = await uploadContent(buildPayload());
-    navigate(`/content/${item.id}`);
+    if (!user) return;
+    if (!validate()) return;
+
+    await createBoard({
+      contentCreatorId: user.userId,
+      complianceAdvisorId: PLACEHOLDER_ADVISOR_ID,
+      managementNumber: generateManagementNumber(),
+      reviewApprovalNumber: null,
+      title,
+      businessSector: BUSINESS_SECTOR_BY_AFFILIATE[affiliate] ?? 'other',
+      channelType: CHANNEL_TYPE_BY_CHANNEL[channel] ?? 'other',
+      contentType: CONTENT_TYPE_BY_COMPOSITION[composition],
+      contentCategory: CONTENT_CATEGORY_BY_CATEGORY[category] ?? 'other',
+      productCategory: PRODUCT_CATEGORY_BY_FINANCIAL_SUB[financialSub] ?? 'other',
+      languageCode: language as CreateBoardRequest['languageCode'],
+      contentFilePath: images[0]?.name ?? null, // TODO: 파일 업로드 API 연동 시 업로드된 경로로 교체
+      contentText: caption,
+      contentDescription: note,
+    });
+    navigate('/dashboard');
   };
 
   const handleSaveDraft = async () => {
@@ -113,6 +199,7 @@ export default function UploadPage() {
                     onChange={setAffiliate}
                     placeholder={affiliatePlaceholder}
                   />
+                  {errors.affiliate && <p className="text-xs text-red-500 mt-1">{errors.affiliate}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -124,6 +211,7 @@ export default function UploadPage() {
                     onChange={setLanguage}
                     placeholder="언어 선택"
                   />
+                  {errors.language && <p className="text-xs text-red-500 mt-1">{errors.language}</p>}
                 </div>
               </div>
 
@@ -162,6 +250,7 @@ export default function UploadPage() {
                     </label>
                   ))}
                 </div>
+                {errors.category && <p className="text-xs text-red-500 mt-1.5">{errors.category}</p>}
 
                 {/* 금융 상품 광고 세부 분류 */}
                 {category === 'financial' && (
@@ -191,6 +280,9 @@ export default function UploadPage() {
                         </label>
                       ))}
                     </div>
+                    {errors.financialSub && (
+                      <p className="text-xs text-red-500 mt-2">{errors.financialSub}</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -207,7 +299,11 @@ export default function UploadPage() {
                     onChange={setChannel}
                     placeholder="채널을 선택하세요"
                   />
-                  <p className="text-xs text-gray-400 mt-1">홈페이지 / SNS / 문자 / 카카오톡 / 기타</p>
+                  {errors.channel ? (
+                    <p className="text-xs text-red-500 mt-1">{errors.channel}</p>
+                  ) : (
+                    <p className="text-xs text-gray-400 mt-1">홈페이지 / SNS / 문자 / 카카오톡 / 기타</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">담당 자문가</label>
@@ -268,8 +364,11 @@ export default function UploadPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="예: 신규 적금 상품 런칭 SNS 카드뉴스"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent"
+                  className={`w-full px-4 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent ${
+                    errors.title ? 'border-red-400' : 'border-gray-300'
+                  }`}
                 />
+                {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
               </div>
 
               {/* 발행 예정일 + 캠페인 */}
@@ -311,8 +410,11 @@ export default function UploadPage() {
                     onChange={(e) => setCaption(e.target.value)}
                     rows={6}
                     placeholder={`심의가 필요한 카피, 헤드라인, 본문을 모두 작성하세요.\n— 헤드라인: ...\n— 서브 카피: ...\n— 본문: ...`}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent resize-none"
+                    className={`w-full px-4 py-3 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent resize-none ${
+                      errors.caption ? 'border-red-400' : 'border-gray-300'
+                    }`}
                   />
+                  {errors.caption && <p className="text-xs text-red-500 mt-1">{errors.caption}</p>}
                   {composition === 'text' && (
                     <p className="text-xs text-gray-400 mt-1">
                       ※ "텍스트만" 선택 시 이미지 첨부 영역은 숨겨집니다.
@@ -364,7 +466,11 @@ export default function UploadPage() {
                       onChange={handleFileChange}
                     />
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF 형식 지원</p>
+                  {errors.images ? (
+                    <p className="text-xs text-red-500 mt-1">{errors.images}</p>
+                  ) : (
+                    <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF 형식 지원</p>
+                  )}
                 </div>
               )}
 

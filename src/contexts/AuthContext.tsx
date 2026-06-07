@@ -2,9 +2,10 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 import type { UserRole } from '@/types/dashboard';
 
 interface AuthUser {
+  userId: number;
   name: string;
   role: UserRole;
-  team: string;
+  team?: string;
   affiliate?: string;
 }
 

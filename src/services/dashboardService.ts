@@ -2,10 +2,15 @@ import { authClient } from '@/services/apiClient';
 import {
   statusSummary as dummyStatusSummary,
   advisorSummary as dummyAdvisorSummary,
-  contentItems as dummyContentItems,
 } from '@/utils/dashboardDummyData';
 import type { ContentItem, StatusSummary } from '@/types/dashboard';
-import type { AdvisorSummary, ContentListParams, ContentListResponse } from '@/types/api';
+import type {
+  AdvisorSummary,
+  ApiResponse,
+  BoardItem,
+  ContentListParams,
+  ContentListResponse,
+} from '@/types/api';
 
 /**
  * DashboardPage (creator): 심의 상태별 건수 요약
@@ -40,14 +45,27 @@ export async function getAdvisorSummary(): Promise<AdvisorSummary> {
  *  - page / pageSize: 페이지네이션
  */
 export async function getContentList(params: ContentListParams): Promise<ContentListResponse> {
-  if (import.meta.env.DEV) {
-    return applyLocalFilters(dummyContentItems, params);
-  }
-  const { data } = await authClient.get<ContentListResponse>('/contents', { params });
-  return data;
+  const { data } = await authClient.get<ApiResponse<BoardItem[]>>('/boards/all');
+  const items = data.data.map(mapBoardItemToContentItem);
+  return applyLocalFilters(items, params);
 }
 
-// 더미 데이터 로컬 필터링 (실제 API 전환 시 제거)
+// TODO: 백엔드 응답에 status/type/제출자·자문가 이름 필드가 추가되면 임시 매핑 제거
+function mapBoardItemToContentItem(board: BoardItem): ContentItem {
+  return {
+    id: String(board.reviewId),
+    managementNumber: board.managementNumber,
+    title: board.title,
+    type: 'other',
+    typeLabel: '기타',
+    advisor: String(board.complianceAdvisorId),
+    creator: String(board.contentCreatorId),
+    submittedAt: board.createdAt.slice(0, 10),
+    status: 'pending',
+  };
+}
+
+// 로컬 필터링 (서버가 필터/페이지네이션을 지원하지 않아 클라이언트에서 처리)
 function applyLocalFilters(
   items: ContentItem[],
   params: ContentListParams,

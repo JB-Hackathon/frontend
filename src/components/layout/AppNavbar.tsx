@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { logout as logoutApi } from '@/services/auth/authService';
 import jbLogo from '@/assets/JB-mark-B-monogram-reversed.svg';
 
 export default function AppNavbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logoutApi();
     logout();
     navigate('/login');
   };

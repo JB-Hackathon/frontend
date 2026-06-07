@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Dropdown from '../components/common/Dropdown';
 import { JB_AFFILIATES } from '@/utils/constants/JB';
-import { register as registerApi } from '@/services/auth/authService';
+import { register as registerApi, toApiRole } from '@/services/auth/authService';
 
 type UserType = 'creator' | 'advisor';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function RegisterPage() {
   const [userType, setUserType] = useState<UserType>('creator');
@@ -13,12 +16,36 @@ function RegisterPage() {
   const [department, setDepartment] = useState('');
   const [team, setTeam] = useState('');
   const [password, setPassword] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const navigate = useNavigate();
+
+  const validate = () => {
+    const next: Record<string, string> = {};
+    if (!name.trim()) next.name = '이름을 입력해주세요.';
+    if (!affiliate) next.affiliate = '소속 계열사를 선택해주세요.';
+    if (!email.trim()) next.email = '사번 / 이메일을 입력해주세요.';
+    else if (!EMAIL_PATTERN.test(email)) next.email = '올바른 이메일 형식이 아닙니다.';
+    if (!password) next.password = '비밀번호를 입력해주세요.';
+    else if (password.length < 8) next.password = '비밀번호는 8자 이상이어야 합니다.';
+
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await registerApi({ userType, name, email, affiliate, department, team, password });
-    setSubmitted(true);
+    if (!validate()) return;
+
+    await registerApi({
+      email,
+      password,
+      name,
+      role: toApiRole(userType),
+      // TODO: 팀 목록 API 연동 후 affiliate/department/team 입력값으로 teamId 매핑
+      teamId: 1,
+    });
+    navigate('/login');
   };
 
   return (
@@ -86,8 +113,11 @@ function RegisterPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="홍길동"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent ${
+                errors.name ? 'border-red-400' : 'border-gray-300'
+              }`}
             />
+            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
           </div>
 
           <div>
@@ -98,6 +128,7 @@ function RegisterPage() {
               onChange={setAffiliate}
               placeholder="소속 계열사를 선택하세요"
             />
+            {errors.affiliate && <p className="text-xs text-red-500 mt-1">{errors.affiliate}</p>}
           </div>
 
           <div>
@@ -107,8 +138,11 @@ function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@company.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent ${
+                errors.email ? 'border-red-400' : 'border-gray-300'
+              }`}
             />
+            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -141,8 +175,11 @@ function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="8자 이상"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent ${
+                errors.password ? 'border-red-400' : 'border-gray-300'
+              }`}
             />
+            {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
           </div>
 
           <div className="border border-dashed border-gray-300 rounded-lg px-4 py-3">
@@ -151,18 +188,12 @@ function RegisterPage() {
             </p>
           </div>
 
-          {submitted ? (
-            <div className="w-full py-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium text-center">
-              신청이 완료되었습니다. 관리자 승인 후 이메일로 안내됩니다.
-            </div>
-          ) : (
-            <button
-              type="submit"
-              className="w-full bg-[#1B3A6B] text-white py-4 rounded-lg font-bold text-base hover:bg-[#152d55] transition-colors"
-            >
-              가입 신청
-            </button>
-          )}
+          <button
+            type="submit"
+            className="w-full bg-[#1B3A6B] text-white py-4 rounded-lg font-bold text-base hover:bg-[#152d55] transition-colors"
+          >
+            가입 신청
+          </button>
         </form>
       </div>
     </div>
