@@ -1,12 +1,95 @@
-import { useState } from 'react';
-import { messages, quickChips } from '../../utils/reviewDummyData';
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { getChatHistory, getQuickChips, sendAIChat } from '@/services/reviewService';
+import type { Message } from '@/types/review';
 
 interface ChatPanelProps {
   onCollapse: () => void;
 }
 
 export default function ChatPanel({ onCollapse }: ChatPanelProps) {
+  const { id: contentId } = useParams();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [quickChips, setQuickChips] = useState<string[]>([]);
   const [input, setInput] = useState('');
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // 대화 이력 + 빠른 입력 칩 초기 로드
+  useEffect(() => {
+    if (!contentId) {
+      setIsLoadingHistory(false);
+      return;
+    }
+    let cancelled = false;
+    setIsLoadingHistory(true);
+    Promise.all([getChatHistory(contentId), getQuickChips()]).then(([history, chips]) => {
+      if (cancelled) return;
+      setMessages(history);
+      setQuickChips(chips);
+      setIsLoadingHistory(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [contentId]);
+
+  // 새 메시지나 스트리밍 토큰이 추가될 때마다 최신 내용으로 스크롤
+  useEffect(() => {
+    const el = listRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
+
+  // 패널이 사라지거나 콘텐츠가 바뀌면 진행 중인 요청을 취소
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, [contentId]);
+
+  const sendMessage = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || !contentId || isStreaming) return;
+
+    const userMessage: Message = { id: crypto.randomUUID(), role: 'user', content: trimmed };
+    const placeholder: Message = { id: crypto.randomUUID(), role: 'agent', content: '', isTyping: true };
+    const history = [...messages, userMessage].map(({ role, content }) => ({ role, content }));
+
+    setMessages((prev) => [...prev, userMessage, placeholder]);
+    setInput('');
+    setIsStreaming(true);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      const response = await sendAIChat({ contentId, message: trimmed, history }, controller.signal);
+      // TODO(SSE 연동): 응답을 통째로 교체하는 대신, 같은 placeholder.id 메시지를
+      // 토큰 단위로 이어붙이며 갱신하는 방식으로 교체
+      const agentMessage: Message = { ...response, role: 'agent' };
+      setMessages((prev) => prev.map((m) => (m.id === placeholder.id ? agentMessage : m)));
+    } catch {
+      if (controller.signal.aborted) return;
+      const errorMessage: Message = {
+        id: placeholder.id,
+        role: 'agent',
+        content: '응답을 가져오지 못했어요. 잠시 후 다시 시도해 주세요.',
+      };
+      setMessages((prev) => prev.map((m) => (m.id === placeholder.id ? errorMessage : m)));
+    } finally {
+      if (abortRef.current === controller) abortRef.current = null;
+      setIsStreaming(false);
+    }
+  };
+
+  const handleSend = () => {
+    void sendMessage(input);
+  };
+
+  const handleChipClick = (chip: string) => {
+    void sendMessage(chip.replace(/^\+\s*/, ''));
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -37,7 +120,15 @@ export default function ChatPanel({ onCollapse }: ChatPanelProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div
+        ref={listRef}
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
+        aria-live="polite"
+        aria-busy={isStreaming}
+      >
+        {isLoadingHistory && (
+          <p className="text-xs text-gray-400 text-center mt-6">대화 내용을 불러오는 중…</p>
+        )}
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className="max-w-[88%]">
@@ -62,7 +153,7 @@ export default function ChatPanel({ onCollapse }: ChatPanelProps) {
                 {msg.role === 'agent' && msg.alternatives && (
                   <ol className="mt-2 space-y-1 text-sm">
                     {msg.alternatives.map((alt, i) => (
-                      <li key={i}>{alt}</li>
+                      <li key={`${msg.id}-${i}`}>{alt}</li>
                     ))}
                     {msg.altNote && (
                       <li className="text-xs text-gray-500 mt-1">{msg.altNote}</li>
@@ -98,7 +189,9 @@ export default function ChatPanel({ onCollapse }: ChatPanelProps) {
           {quickChips.map((chip) => (
             <button
               key={chip}
-              className="text-xs px-2.5 py-1 border border-gray-200 text-gray-500 rounded-full hover:bg-gray-50 hover:border-gray-300 transition-colors"
+              onClick={() => handleChipClick(chip)}
+              disabled={isStreaming}
+              className="text-xs px-2.5 py-1 border border-gray-200 text-gray-500 rounded-full hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {chip}
             </button>
@@ -114,13 +207,18 @@ export default function ChatPanel({ onCollapse }: ChatPanelProps) {
             onChange={(e) => setInput(e.target.value)}
             placeholder="피드백을 어떻게 수정할까요?"
             rows={1}
-            className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none"
+            disabled={isStreaming}
+            className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:opacity-60"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) e.preventDefault();
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
             }}
           />
           <button
-            disabled={!input.trim()}
+            onClick={handleSend}
+            disabled={!input.trim() || isStreaming}
             className="w-7 h-7 bg-[#1B3A6B] text-white rounded-lg flex items-center justify-center hover:bg-[#152d55] transition-colors shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

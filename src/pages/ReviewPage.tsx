@@ -3,7 +3,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import ContentPanel from '@/components/review/ContentPanel';
 import ReviewPanel from '@/components/review/ReviewPanel';
 import ChatPanel from '@/components/review/ChatPanel';
-import { updateContentStatus } from '@/services/reviewService';
+import StatusBadge from '@/components/dashboard/StatusBadge';
+import { startReview, updateContentStatus } from '@/services/reviewService';
+import type { ReviewStartResponse } from '@/types/api';
+
+function formatTime(isoString: string) {
+  return new Date(isoString).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+}
 
 const MIN_PANEL_WIDTH = 200;
 const DEFAULT_LEFT_WIDTH = 300;
@@ -23,8 +29,22 @@ export default function ReviewPage() {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [reviewData, setReviewData] = useState<ReviewStartResponse | null>(null);
 
   const dragRef = useRef<DragState | null>(null);
+
+  // 검토 시작: 게시글 정보 + 최신 버전 콘텐츠 조회
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    setReviewData(null);
+    startReview(id).then((data) => {
+      if (!cancelled) setReviewData(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -77,14 +97,18 @@ export default function ReviewPage() {
           </Link>
 
           <span className="text-gray-300 shrink-0">|</span>
-          <span className="text-sm font-mono text-gray-500 shrink-0">C-0143</span>
+          <span className="text-sm font-mono text-gray-500 shrink-0">{reviewData?.reviewBoard.managementNumber ?? '-'}</span>
           <h1 className="text-sm font-bold text-gray-900 truncate">
-            주거래 우대 통장 · SNS 카드뉴스 (3종)
+            {reviewData?.reviewBoard.title ?? '제목을 불러오는 중…'}
           </h1>
-          <span className="text-sm text-gray-400 shrink-0">자동저장 14:08</span>
-          <span className="shrink-0 text-xs font-semibold px-2.5 py-0.5 border border-gray-300 text-gray-600 rounded-full">
-            검토중
-          </span>
+          {reviewData && (
+            <>
+              <span className="text-sm text-gray-400 shrink-0">자동저장 {formatTime(reviewData.reviewBoard.updatedAt)}</span>
+              <span className="shrink-0">
+                <StatusBadge status={reviewData.latestVersion.reviewStatus} />
+              </span>
+            </>
+          )}
         </div>
 
         {/* Right actions */}
@@ -135,7 +159,7 @@ export default function ReviewPage() {
             style={{ width: leftWidth }}
             className="shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-hidden"
           >
-            <ContentPanel onCollapse={() => setLeftCollapsed(true)} />
+            <ContentPanel onCollapse={() => setLeftCollapsed(true)} version={reviewData?.latestVersion ?? null} />
           </div>
         )}
 

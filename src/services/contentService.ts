@@ -129,7 +129,6 @@ export async function resubmitContent(
  * id는 reviewId (대시보드 목록의 id와 동일)
  */
 export async function deleteContent(id: string): Promise<void> {
-  if (import.meta.env.DEV) return;
   await authClient.delete(`/reviews/${id}`);
 }
 

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppNavbar from '@/components/layout/AppNavbar';
 import Dropdown from '@/components/common/Dropdown';
@@ -85,8 +85,16 @@ export default function UploadPage() {
   const [caption, setCaption] = useState('');
   const [note, setNote] = useState('');
   const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 첨부 이미지 미리보기: File → object URL 생성/해제
+  useEffect(() => {
+    const urls = images.map((file) => URL.createObjectURL(file));
+    setImagePreviews(urls);
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, [images]);
 
   const validate = () => {
     const next: Record<string, string> = {};
@@ -438,9 +446,12 @@ export default function UploadPage() {
                     {images.map((file, idx) => (
                       <div
                         key={idx}
-                        className="relative flex items-center justify-center w-32 h-20 bg-gray-50 border border-gray-200 rounded-lg group overflow-hidden"
+                        className="relative w-32 h-20 bg-gray-50 border border-gray-200 rounded-lg group overflow-hidden"
+                        title={file.name}
                       >
-                        <span className="text-xs text-gray-500 truncate px-2 text-center">{file.name}</span>
+                        {imagePreviews[idx] && (
+                          <img src={imagePreviews[idx]} alt={file.name} className="w-full h-full object-cover" />
+                        )}
                         <button
                           type="button"
                           onClick={() => removeImage(idx)}

@@ -46,12 +46,12 @@ export async function getAdvisorSummary(): Promise<AdvisorSummary> {
  */
 export async function getContentList(params: ContentListParams): Promise<ContentListResponse> {
   const { data } = await authClient.get<ApiResponse<BoardItem[]>>('/boards/all');
-  const items = data.data.map(mapBoardItemToContentItem);
+  const items = data.data.map((board) => mapBoardItemToContentItem(board, params.userName));
   return applyLocalFilters(items, params);
 }
 
 // TODO: 백엔드 응답에 status/type/제출자·자문가 이름 필드가 추가되면 임시 매핑 제거
-function mapBoardItemToContentItem(board: BoardItem): ContentItem {
+function mapBoardItemToContentItem(board: BoardItem, userName?: string): ContentItem {
   return {
     id: String(board.reviewId),
     managementNumber: board.managementNumber,
@@ -59,7 +59,7 @@ function mapBoardItemToContentItem(board: BoardItem): ContentItem {
     type: 'other',
     typeLabel: '기타',
     advisor: String(board.complianceAdvisorId),
-    creator: String(board.contentCreatorId),
+    creator: userName ?? String(board.contentCreatorId),
     submittedAt: board.createdAt.slice(0, 10),
     status: 'pending',
   };

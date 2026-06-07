@@ -1,5 +1,12 @@
 import { authClient } from '@/services/apiClient';
-import type { ContentDetail, ReviewSubmitRequest, AIChatRequest, AIChatResponse } from '@/types/api';
+import type {
+  ApiResponse,
+  ContentDetail,
+  ReviewSubmitRequest,
+  ReviewStartResponse,
+  AIChatRequest,
+  AIChatResponse,
+} from '@/types/api';
 import type { ContentStatus } from '@/types/dashboard';
 import { messages as dummyMessages, quickChips as dummyChips } from '@/utils/reviewDummyData';
 import type { Message } from '@/types/review';
@@ -26,6 +33,15 @@ const DUMMY_AI_RESPONSES: AIChatResponse[] = [
 ];
 
 // ─── 서비스 함수 ──────────────────────────────────────────────────────────────
+
+/**
+ * ReviewPage: 검토 시작 시 게시글 정보 + 최신 버전 콘텐츠 조회
+ * /review/:id 진입 시 POST 요청으로 reviewBoard/latestVersion을 함께 받아옴
+ */
+export async function startReview(boardId: string): Promise<ReviewStartResponse> {
+  const { data } = await authClient.post<ApiResponse<ReviewStartResponse>>(`/boards/review/${boardId}`);
+  return data.data;
+}
 
 /**
  * ReviewPage: 자문가가 심의 의견 제출 (승인 또는 반려)
@@ -63,12 +79,12 @@ export async function updateContentStatus(
  * ReviewPage (ChatPanel): AI 자문 메시지 전송
  * 콘텐츠 ID + 현재 대화 이력을 함께 보내 문맥 기반 응답 생성
  */
-export async function sendAIChat(payload: AIChatRequest): Promise<AIChatResponse> {
+export async function sendAIChat(payload: AIChatRequest, signal?: AbortSignal): Promise<AIChatResponse> {
   if (import.meta.env.DEV) {
     const idx = Math.floor(Math.random() * DUMMY_AI_RESPONSES.length);
     return { ...DUMMY_AI_RESPONSES[idx], id: `ai-${Date.now()}` };
   }
-  const { data } = await authClient.post<AIChatResponse>('/ai/chat', payload);
+  const { data } = await authClient.post<AIChatResponse>('/ai/chat', payload, { signal });
   return data;
 }
 

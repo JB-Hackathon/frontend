@@ -120,6 +120,12 @@ export interface ReviewVersionItem {
   updatedAt: string;
 }
 
+// POST /boards/review/{boardId} 응답 — 검토 시작 시 게시글 + 최신 버전 데이터
+export interface ReviewStartResponse {
+  reviewBoard: BoardItem;
+  latestVersion: ReviewVersionItem;
+}
+
 // ─── Content Detail ──────────────────────────────────────────────────────────
 
 export interface ReviewOpinion {
