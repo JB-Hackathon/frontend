@@ -85,6 +85,7 @@ export interface CreateBoardRequest {
   contentFilePath: string | null;
   contentText: string;
   contentDescription: string;
+  images?: File[];
 }
 
 // GET /boards/all 응답 항목
@@ -143,6 +144,7 @@ export interface ReviewVersion {
   summary: string;
   opinion: ReviewOpinion | null;
   hasAISummary?: boolean;
+  contentFilePath: string | null;
 }
 
 export interface ContentDetail {
@@ -157,6 +159,7 @@ export interface ContentDetail {
   advisor: string;
   creator: string;
   complianceNo: string;
+  contentFilePath: string | null;
   relatedContents: { id: string; title: string }[];
 }
 

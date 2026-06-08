@@ -2,7 +2,7 @@ import { clearTokens, getAccessToken } from "@/utils/storage";
 import axios from "axios";
 import { getNewTokens } from "./auth/token";
 
-const BASE_URL = "http://localhost:8080/api/v1/";
+export const BASE_URL = "http://localhost:8080/api/v1/";
 
 const defaultConfig = {
   baseURL: BASE_URL,

@@ -24,6 +24,7 @@ const DUMMY_DETAIL: ContentDetail = {
   advisor: '박준법',
   creator: '김지원',
   complianceNo: 'JB-111111-111111',
+  contentFilePath: 'image3.jpg',
   relatedContents: [
     { id: 'C-0098', title: '동일 캠페인 메인 배너' },
     { id: 'C-0114', title: '동일 상품 푸시 문구' },
@@ -73,14 +74,19 @@ function mapReviewVersionItem(item: ReviewVersionItem): ReviewVersion {
     reviewer: '', // TODO: 응답에 자문가 이름 필드가 추가되면 매핑
     summary: item.reviewComments ?? item.contentDescription,
     opinion: null, // TODO: reviewComments/reviewReports 구조가 확정되면 종합·항목별 의견으로 매핑
+    contentFilePath: item.contentFilePath,
   };
 }
 
 /**
  * UploadPage: 심의 요청 생성 (POST /boards)
+ * 첨부 이미지를 함께 전송하기 위해 폼데이터(multipart/form-data)로 요청
  */
 export async function createBoard(payload: CreateBoardRequest): Promise<void> {
-  await authClient.post('/boards', payload);
+  const form = buildFormData(payload, 'contentFile');
+  await authClient.post('/boards', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 }
 
 /**
@@ -157,12 +163,12 @@ export async function getAdvisors(): Promise<Advisor[]> {
 
 // ─── 유틸 ─────────────────────────────────────────────────────────────────────
 
-function buildFormData(payload: UploadContentRequest): FormData {
+function buildFormData<T extends { images?: File[] }>(payload: T, fileFieldName = 'images'): FormData {
   const form = new FormData();
   const { images, ...fields } = payload;
   Object.entries(fields).forEach(([k, v]) => {
     if (v !== undefined && v !== null) form.append(k, String(v));
   });
-  images?.forEach((file) => form.append('images', file));
+  images?.forEach((file) => form.append(fileFieldName, file));
   return form;
 }

@@ -1,20 +1,11 @@
 import { useState } from 'react';
 import type { ReviewVersionItem } from '@/types/api';
-import image2_1 from '@/assets/data/image_2_1.jpg';
-import image2_2 from '@/assets/data/image_2_2.jpg';
-import image3 from '@/assets/data/image3.jpg';
+import { resolveContentImageSrc } from '@/utils/localImages';
 
 interface ContentPanelProps {
   onCollapse: () => void;
   version: ReviewVersionItem | null;
 }
-
-// TODO: 백엔드가 첨부 파일을 URL로 내려주면 contentFilePath → 정적 파일 URL로 교체
-const LOCAL_IMAGE_BY_FILENAME: Record<string, string> = {
-  'image_2_1.jpg': image2_1,
-  'image_2_2.jpg': image2_2,
-  'image3.jpg': image3,
-};
 
 const CHANNEL_LABELS: Record<ReviewVersionItem['channelType'], string> = {
   homepage: '홈페이지',
@@ -47,7 +38,7 @@ const PRODUCT_CATEGORY_LABELS: Record<ReviewVersionItem['productCategory'], stri
 
 export default function ContentPanel({ onCollapse, version }: ContentPanelProps) {
   const [isImageOpen, setIsImageOpen] = useState(false);
-  const imageSrc = version?.contentFilePath ? LOCAL_IMAGE_BY_FILENAME[version.contentFilePath] : undefined;
+  const imageSrc = resolveContentImageSrc(version?.contentFilePath);
 
   return (
     <div className="flex flex-col h-full">

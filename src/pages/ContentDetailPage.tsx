@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AppNavbar from '@/components/layout/AppNavbar';
 import StatusBadge from '@/components/dashboard/StatusBadge';
+import { resolveContentImageSrc } from '@/utils/localImages';
 import {
   getContentDetail,
   getReviewVersions,
@@ -120,6 +121,7 @@ export default function ContentDetailPage() {
 
   const [content, setContent] = useState<ContentDetail | null>(null);
   const [reviews, setReviews] = useState<ReviewVersion[]>([]);
+  const [isImageOpen, setIsImageOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -156,6 +158,10 @@ export default function ContentDetailPage() {
   }
 
   const finalReview = reviews.find((r) => r.status === 'approved' || r.status === 'rejected');
+
+  // 제출 콘텐츠 이미지는 최신 심의 버전(reviews[0])의 첨부 파일을 기준으로 표시
+  const latestContentFilePath = reviews[0]?.contentFilePath ?? null;
+  const formImageSrc = resolveContentImageSrc(latestContentFilePath);
 
   const finalResultLabel: Record<ContentStatus, string> = {
     approved: '승인',
@@ -301,6 +307,21 @@ export default function ContentDetailPage() {
           {/* Right — Sidebar */}
           <div className="w-72 shrink-0 space-y-4">
 
+            {/* Submitted content image */}
+            {/* {latestContentFilePath && formImageSrc && (
+              <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                <h3 className="text-sm font-semibold text-gray-800">제출 콘텐츠</h3>
+                <button
+                  type="button"
+                  onClick={() => setIsImageOpen(true)}
+                  title="클릭하면 확대해서 볼 수 있어요"
+                  className="block w-full rounded-lg overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors"
+                >
+                  <img src={formImageSrc} alt={latestContentFilePath} className="w-full max-h-48 object-cover" />
+                </button>
+              </div>
+            )} */}
+
             {/* Final result */}
             <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
               <h3 className="text-sm font-semibold text-gray-800">최종 결과</h3>
@@ -320,9 +341,9 @@ export default function ContentDetailPage() {
                 </p>
               )}
 
-              <div className="pt-1 border-t border-gray-100 space-y-1">
+              <div className="pt-3 border-t border-gray-100 space-y-1">
                 <p className="text-xs text-gray-400">
-                  담당 자문가 ·{' '}
+                  담당 자문가 : {' '}
                   <span className="font-semibold text-gray-600">{content.advisor}</span>
                   <span className="text-gray-400"> (마케팅 본부)</span>
                 </p>
@@ -350,6 +371,30 @@ export default function ContentDetailPage() {
           </div>
         </div>
       </main>
+
+      Submitted content image lightbox
+      {isImageOpen && formImageSrc && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-8"
+          onClick={() => setIsImageOpen(false)}
+        >
+          <img
+            src={formImageSrc}
+            alt={latestContentFilePath ?? ''}
+            className="max-w-full max-h-full rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setIsImageOpen(false)}
+            title="닫기"
+            className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

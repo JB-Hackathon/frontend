@@ -156,9 +156,10 @@ export default function UploadPage() {
       contentCategory: CONTENT_CATEGORY_BY_CATEGORY[category] ?? 'other',
       productCategory: PRODUCT_CATEGORY_BY_FINANCIAL_SUB[financialSub] ?? 'other',
       languageCode: language as CreateBoardRequest['languageCode'],
-      contentFilePath: images[0]?.name ?? null, // TODO: 파일 업로드 API 연동 시 업로드된 경로로 교체
+      contentFilePath: null,
       contentText: caption,
       contentDescription: note,
+      images: composition !== 'text' ? images : undefined,
     });
     navigate('/dashboard');
   };
