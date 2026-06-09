@@ -1,10 +1,116 @@
-import { cards } from '../../utils/reviewDummyData';
+import { useState, useEffect, useCallback } from 'react';
+import { cards as defaultCards } from '../../utils/reviewDummyData';
+import type { ReactNode } from 'react';
+import card01 from '../../assets/card_01.svg';
+import card02 from '../../assets/card_02.svg';
+import card03 from '../../assets/card_03.svg';
+
+const cardImages = [
+  { src: card01, label: 'Card 1' },
+  { src: card02, label: 'Card 2' },
+  { src: card03, label: 'Card 3' },
+];
 
 interface ContentPanelProps {
   onCollapse: () => void;
+  cards?: { label: string; lines: (string | ReactNode)[] }[];
 }
 
-export default function ContentPanel({ onCollapse }: ContentPanelProps) {
+function ImageLightbox({
+  index,
+  onClose,
+  onPrev,
+  onNext,
+}: {
+  index: number;
+  onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const { src, label } = cardImages[index];
+  const total = cardImages.length;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') onPrev();
+      if (e.key === 'ArrowRight') onNext();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, onPrev, onNext]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      {/* 닫기 */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      {/* 이전 */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onPrev(); }}
+        className="absolute left-4 p-2.5 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors disabled:opacity-20"
+        disabled={index === 0}
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      {/* 이미지 */}
+      <div
+        className="relative max-w-lg w-full mx-16 flex flex-col items-center gap-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={src}
+          alt={label}
+          className="w-full rounded-xl shadow-2xl"
+        />
+        {/* 인디케이터 */}
+        <div className="flex items-center gap-2">
+          {cardImages.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => i < index ? onPrev() : onNext()}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${i === index ? 'bg-white w-4' : 'bg-white/40'}`}
+            />
+          ))}
+        </div>
+        <span className="text-white/50 text-xs">{label} · {index + 1} / {total}</span>
+      </div>
+
+      {/* 다음 */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onNext(); }}
+        className="absolute right-4 p-2.5 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors disabled:opacity-20"
+        disabled={index === total - 1}
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+export default function ContentPanel({ onCollapse, cards = defaultCards }: ContentPanelProps) {
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+
+  const handlePrev = useCallback(() =>
+    setLightboxIdx((i) => (i !== null && i > 0 ? i - 1 : i)), []);
+  const handleNext = useCallback(() =>
+    setLightboxIdx((i) => (i !== null && i < cardImages.length - 1 ? i + 1 : i)), []);
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -36,43 +142,49 @@ export default function ContentPanel({ onCollapse }: ContentPanelProps) {
         <section>
           <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5">첨부 이미지</h3>
           <div className="flex gap-2">
-            {['card_01', 'card_02', 'card_03'].map((name) => (
-              <div
-                key={name}
-                className="flex-1 aspect-square bg-gray-50 rounded-lg border border-gray-200 flex flex-col items-center justify-center gap-1.5"
+            {cardImages.map(({ src, label }, idx) => (
+              <button
+                key={label}
+                onClick={() => setLightboxIdx(idx)}
+                className="group flex-1 aspect-square rounded-lg border border-gray-200 overflow-hidden bg-gray-50 relative cursor-zoom-in"
               >
-                <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <span className="text-[9px] text-gray-400">{name}.png</span>
-              </div>
+                <img src={src} alt={label} className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 drop-shadow"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                  </svg>
+                </div>
+              </button>
             ))}
           </div>
         </section>
 
         <section>
-          <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5">텍스트 / 카피</h3>
-          <div className="space-y-3">
-            {cards.map((card) => (
-              <div key={card.label} className="border-l-2 border-gray-200 pl-3 py-0.5">
-                <p className="text-[10px] text-gray-400 font-medium mb-1">{card.label}</p>
-                {card.lines.map((line, i) => (
-                  <p key={i} className="text-sm text-gray-700">{line}</p>
-                ))}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5">제작자 메모</h3>
-          <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 rounded-lg p-3 border border-gray-100">
-            SNS 채널 노출용으로 임팩트 강하게 작성했습니다. 우대조건은 Card 3 하단에 작게 표기되어 있습니다.
+          <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5">텍스트</h3>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {cards.flatMap((card, ci) =>
+              card.lines.flatMap((line, li) => {
+                const isLast = ci === cards.length - 1 && li === card.lines.length - 1;
+                return [<span key={`${ci}-${li}`}>{line}</span>, !isLast ? ' ' : null];
+              })
+            )}
           </p>
         </section>
+
       </div>
+
+      {/* Lightbox */}
+      {lightboxIdx !== null && (
+        <ImageLightbox
+          index={lightboxIdx}
+          onClose={() => setLightboxIdx(null)}
+          onPrev={handlePrev}
+          onNext={handleNext}
+        />
+      )}
     </div>
   );
 }

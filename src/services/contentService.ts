@@ -2,6 +2,8 @@ import { authClient } from '@/services/apiClient';
 import type { ContentDetail, UploadContentRequest, Advisor } from '@/types/api';
 import type { ContentItem } from '@/types/dashboard';
 import { DUMMY_CONTENT_DETAIL, DUMMY_ADVISORS } from '@/utils/contentDummyData';
+import { contentItems as dummyContentItems, statusSummary as dummyStatusSummary } from '@/utils/dashboardDummyData';
+import { ADVISORS } from '@/utils/constants/upload';
 
 // ─── 서비스 함수 ──────────────────────────────────────────────────────────────
 
@@ -19,16 +21,20 @@ export async function getContentDetail(id: string): Promise<ContentDetail> {
  */
 export async function uploadContent(payload: UploadContentRequest): Promise<ContentItem> {
   if (import.meta.env.DEV) {
-    return {
-      id: `C-${Date.now()}`,
+    const newItem: ContentItem = {
+      id: `C-${String(Number(dummyContentItems[0]?.id?.replace('C-', '') ?? 0) + 1).padStart(4, '0')}`,
       title: payload.title,
       type: payload.channel,
       typeLabel: payload.channel,
-      advisor: null,
+      advisor: ADVISORS.find((a) => a.value === payload.advisorId)?.label ?? null,
       creator: '김지원',
       submittedAt: new Date().toISOString().slice(0, 10),
       status: 'pending',
     };
+    dummyContentItems.unshift(newItem);
+    dummyStatusSummary.pending += 1;
+    dummyStatusSummary.total += 1;
+    return newItem;
   }
   const form = buildFormData(payload);
   const { data } = await authClient.post<ContentItem>('/contents', form, {

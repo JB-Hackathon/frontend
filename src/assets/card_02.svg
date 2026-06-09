@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#F0F5FF"/>
+
+  <!-- Top bar -->
+  <rect width="400" height="8" fill="#1B3A6B"/>
+
+  <!-- Decorative wave shape -->
+  <ellipse cx="340" cy="80" rx="160" ry="90" fill="#DDEAFF" opacity="0.6"/>
+
+  <!-- Logo -->
+  <rect x="24" y="24" width="44" height="44" rx="8" fill="#1B3A6B"/>
+  <text x="46" y="52" font-family="Arial Black,sans-serif" font-size="18" font-weight="900" fill="white" text-anchor="middle">JB</text>
+
+  <!-- Card number -->
+  <text x="376" y="44" font-family="Arial,sans-serif" font-size="11" fill="#1B3A6B" opacity="0.4" text-anchor="end">02 / 03</text>
+
+  <!-- Main headline -->
+  <text x="24" y="120" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="16" fill="#1B3A6B" opacity="0.7">지금 가입하면</text>
+
+  <!-- Big claim -->
+  <text x="24" y="170" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="30" font-weight="900" fill="#1B3A6B">누구나</text>
+  <text x="24" y="210" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="30" font-weight="900" fill="#1B3A6B">받을 수 있는 혜택!</text>
+
+  <!-- Benefit chips -->
+  <rect x="24" y="230" width="120" height="28" rx="14" fill="#1B3A6B"/>
+  <text x="84" y="249" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="11" fill="white" text-anchor="middle">우대금리 최대 7.0%</text>
+
+  <rect x="152" y="230" width="120" height="28" rx="14" fill="#E8F0FE" stroke="#1B3A6B" stroke-width="1"/>
+  <text x="212" y="249" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="11" fill="#1B3A6B" text-anchor="middle">입출금 수수료 무료</text>
+
+  <!-- Sub benefit -->
+  <rect x="24" y="268" width="112" height="28" rx="14" fill="#E8F0FE" stroke="#1B3A6B" stroke-width="1"/>
+  <text x="80" y="287" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="11" fill="#1B3A6B" text-anchor="middle">체크카드 혜택 제공</text>
+
+  <!-- Urgency text (problematic) -->
+  <rect x="24" y="312" width="300" height="36" rx="8" fill="#FFF3CD" stroke="#FFB800" stroke-width="1"/>
+  <text x="174" y="335" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="12" font-weight="700" fill="#B8860B" text-anchor="middle">놓치면 손해입니다!</text>
+
+  <!-- Footer -->
+  <rect x="0" y="368" width="400" height="32" fill="#1B3A6B"/>
+  <text x="200" y="388" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="10" fill="white" opacity="0.7" text-anchor="middle">JB은행 주거래 우대 통장 · SNS 카드뉴스</text>
+</svg>

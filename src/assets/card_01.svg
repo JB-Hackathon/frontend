@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#1B3A6B"/>
+  <!-- Decorative circles -->
+  <circle cx="360" cy="60" r="130" fill="#2C5AA0" opacity="0.35"/>
+  <circle cx="-40" cy="370" r="160" fill="#0D2044" opacity="0.5"/>
+  <circle cx="380" cy="380" r="80" fill="#2C5AA0" opacity="0.2"/>
+
+  <!-- Logo box -->
+  <rect x="24" y="24" width="52" height="52" rx="10" fill="white" opacity="0.12"/>
+  <text x="50" y="56" font-family="Arial Black,sans-serif" font-size="22" font-weight="900" fill="white" text-anchor="middle">JB</text>
+
+  <!-- Product tag -->
+  <rect x="24" y="88" width="128" height="22" rx="11" fill="white" opacity="0.12"/>
+  <text x="88" y="103" font-family="Apple SD Gothic Neo,Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="10" fill="white" text-anchor="middle">주거래 우대 통장</text>
+
+  <!-- Sequence -->
+  <text x="376" y="44" font-family="Arial,sans-serif" font-size="11" fill="white" opacity="0.4" text-anchor="end">01 / 03</text>
+
+  <!-- Sub headline -->
+  <text x="24" y="172" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="17" fill="white" opacity="0.82">매월 30만원만 넣어도,</text>
+
+  <!-- Main rate -->
+  <text x="24" y="262" font-family="Arial Black,sans-serif" font-size="86" font-weight="900" fill="#FFD700">7.0%</text>
+
+  <!-- Rate label -->
+  <text x="24" y="296" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="22" fill="white" letter-spacing="2">우대금리</text>
+
+  <!-- Divider -->
+  <line x1="24" y1="318" x2="200" y2="318" stroke="white" stroke-width="1" opacity="0.2"/>
+
+  <!-- Disclaimer -->
+  <text x="24" y="338" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="8.5" fill="white" opacity="0.42">* 기본금리 연 0.1% + 우대금리 최대 연 6.9%</text>
+  <text x="24" y="350" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-size="8.5" fill="white" opacity="0.42">  우대조건 미충족 시 기본금리 적용</text>
+
+  <!-- Bottom accent -->
+  <rect x="0" y="384" width="400" height="16" fill="#FFD700" opacity="0.75"/>
+
+  <!-- Bank name bottom -->
+  <text x="200" y="395" font-family="Arial Black,sans-serif" font-size="8" font-weight="900" fill="#1B3A6B" text-anchor="middle" opacity="0.8">JB BANK</text>
+</svg>

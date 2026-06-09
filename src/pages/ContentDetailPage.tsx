@@ -16,7 +16,6 @@ import type { ContentStatus } from "@/types/dashboard";
 const dotColor: Record<ContentStatus, string> = {
   approved: "bg-emerald-400",
   rejected: "bg-red-400",
-  reviewing: "bg-sky-400",
   pending: "bg-gray-300",
 };
 
@@ -76,25 +75,6 @@ function ReviewAccordionItem({
 
       {open && review.opinion && (
         <div className="px-5 pb-5 ml-5 space-y-4">
-          {review.hasAISummary && (
-            <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-full hover:bg-teal-100 transition-colors">
-              <svg
-                className="w-3.5 h-3.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              AI 요약본
-            </button>
-          )}
-
           <div>
             <p className="text-xs font-semibold text-[#1B3A6B] mb-1.5">
               종합 의견
@@ -196,14 +176,12 @@ export default function ContentDetailPage() {
   const finalResultLabel: Record<ContentStatus, string> = {
     approved: "승인",
     rejected: "반려",
-    reviewing: "검토중",
     pending: "대기",
   };
 
   const finalResultColor: Record<ContentStatus, string> = {
     approved: "text-emerald-600 bg-emerald-50 border-emerald-200",
     rejected: "text-red-500 bg-red-50 border-red-200",
-    reviewing: "text-sky-600 bg-sky-50 border-sky-200",
     pending: "text-amber-600 bg-amber-50 border-amber-200",
   };
 

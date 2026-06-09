@@ -10,14 +10,33 @@ export const advisorSummary = {
 };
 
 export const statusSummary: StatusSummary = {
-  pending: 3,
-  reviewing: 3,
+  pending: 8,
   approved: 6,
   rejected: 5,
-  total: 17,
+  total: 19,
 };
 
 export const contentItems: ContentItem[] = [
+  {
+    id: 'C-0144',
+    title: 'JB체크카드 혜택 안내 · 온라인 배너 (2종)',
+    type: 'banner' as any,
+    typeLabel: '배너',
+    advisor: '박준법',
+    creator: '최다은',
+    submittedAt: '2026-06-09',
+    status: 'pending',
+  },
+  {
+    id: 'C-0143',
+    title: '주거래 우대 통장 · SNS 카드뉴스 (3종)',
+    type: 'sns',
+    typeLabel: 'SNS',
+    advisor: '박준법',
+    creator: '이현수',
+    submittedAt: '2026-06-08',
+    status: 'pending',
+  },
   {
     id: 'C-0142',
     title: '신규 적금 상품 런칭 SNS 이벤트 게시물',
@@ -126,7 +145,7 @@ export const contentItems: ContentItem[] = [
     advisor: '이감독',
     creator: '박민준',
     submittedAt: '2026-05-08',
-    status: 'reviewing',
+    status: 'pending',
   },
   {
     id: 'C-0131',
@@ -166,7 +185,7 @@ export const contentItems: ContentItem[] = [
     advisor: '이감독',
     creator: '김지원',
     submittedAt: '2026-05-04',
-    status: 'reviewing',
+    status: 'pending',
   },
   {
     id: 'C-0127',

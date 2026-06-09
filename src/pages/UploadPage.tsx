@@ -33,11 +33,15 @@ export default function UploadPage() {
   const [caption, setCaption] = useState('');
   const [note, setNote] = useState('');
   const [images, setImages] = useState<File[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setImages((prev) => [...prev, ...Array.from(e.target.files!)]);
+      setErrors((p) => ({ ...p, images: '' }));
     }
   };
 
@@ -64,9 +68,32 @@ export default function UploadPage() {
     images: composition !== 'text' ? images : undefined,
   });
 
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!affiliate) e.affiliate = '업권을 선택해 주세요.';
+    if (!category) e.category = '콘텐츠 유형을 선택해 주세요.';
+    if (category === 'financial' && !financialSub) e.financialSub = '세부 분류를 선택해 주세요.';
+    if (!channel) e.channel = '채널을 선택해 주세요.';
+    if (!title.trim()) e.title = '제목을 입력해 주세요.';
+    if (composition !== 'image' && !caption.trim()) e.caption = '텍스트/카피를 입력해 주세요.';
+    if (composition === 'image' && images.length === 0) e.images = '이미지를 1개 이상 첨부해 주세요.';
+    return e;
+  };
+
   const handleSubmit = async () => {
-    const item = await uploadContent(buildPayload());
-    navigate(`/content/${item.id}`);
+    const newErrors = validate();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
+    setIsSubmitting(true);
+    try {
+      await uploadContent(buildPayload());
+      setShowSuccess(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSaveDraft = async () => {
@@ -110,9 +137,10 @@ export default function UploadPage() {
                   <Dropdown
                     options={JB_AFFILIATES}
                     value={affiliate}
-                    onChange={setAffiliate}
+                    onChange={(v) => { setAffiliate(v); setErrors((p) => ({ ...p, affiliate: '' })); }}
                     placeholder={affiliatePlaceholder}
                   />
+                  {errors.affiliate && <p className="text-xs text-red-500 mt-1">{errors.affiliate}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -151,6 +179,7 @@ export default function UploadPage() {
                           onChange={() => {
                             setCategory(cat.value);
                             if (cat.value !== 'financial') setFinancialSub('');
+                            setErrors((p) => ({ ...p, category: '' }));
                           }}
                           className="accent-[#1B3A6B] shrink-0"
                         />
@@ -162,6 +191,7 @@ export default function UploadPage() {
                     </label>
                   ))}
                 </div>
+                {errors.category && <p className="text-xs text-red-500 mt-1">{errors.category}</p>}
 
                 {/* 금융 상품 광고 세부 분류 */}
                 {category === 'financial' && (
@@ -184,13 +214,14 @@ export default function UploadPage() {
                             name="financialSub"
                             value={sub.value}
                             checked={financialSub === sub.value}
-                            onChange={() => setFinancialSub(sub.value)}
+                            onChange={() => { setFinancialSub(sub.value); setErrors((p) => ({ ...p, financialSub: '' })); }}
                             className="sr-only"
                           />
                           {sub.label}
                         </label>
                       ))}
                     </div>
+                    {errors.financialSub && <p className="text-xs text-red-500 mt-2">{errors.financialSub}</p>}
                   </div>
                 )}
               </div>
@@ -204,10 +235,12 @@ export default function UploadPage() {
                   <Dropdown
                     options={CHANNELS}
                     value={channel}
-                    onChange={setChannel}
+                    onChange={(v) => { setChannel(v); setErrors((p) => ({ ...p, channel: '' })); }}
                     placeholder="채널을 선택하세요"
                   />
-                  <p className="text-xs text-gray-400 mt-1">홈페이지 / SNS / 문자 / 카카오톡 / 기타</p>
+                  {errors.channel
+                    ? <p className="text-xs text-red-500 mt-1">{errors.channel}</p>
+                    : <p className="text-xs text-gray-400 mt-1">홈페이지 / SNS / 문자 / 카카오톡 / 기타</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">담당 자문가</label>
@@ -266,10 +299,11 @@ export default function UploadPage() {
                 <input
                   type="text"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => { setTitle(e.target.value); setErrors((p) => ({ ...p, title: '' })); }}
                   placeholder="예: 신규 적금 상품 런칭 SNS 카드뉴스"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent"
+                  className={`w-full px-4 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent ${errors.title ? 'border-red-400' : 'border-gray-300'}`}
                 />
+                {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
               </div>
 
               {/* 발행 예정일 + 캠페인 */}
@@ -308,16 +342,18 @@ export default function UploadPage() {
                   </label>
                   <textarea
                     value={caption}
-                    onChange={(e) => setCaption(e.target.value)}
+                    onChange={(e) => { setCaption(e.target.value); setErrors((p) => ({ ...p, caption: '' })); }}
                     rows={6}
                     placeholder={`심의가 필요한 카피, 헤드라인, 본문을 모두 작성하세요.\n— 헤드라인: ...\n— 서브 카피: ...\n— 본문: ...`}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent resize-none"
+                    className={`w-full px-4 py-3 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-transparent resize-none ${errors.caption ? 'border-red-400' : 'border-gray-300'}`}
                   />
-                  {composition === 'text' && (
-                    <p className="text-xs text-gray-400 mt-1">
-                      ※ "텍스트만" 선택 시 이미지 첨부 영역은 숨겨집니다.
-                    </p>
-                  )}
+                  {errors.caption
+                    ? <p className="text-xs text-red-500 mt-1">{errors.caption}</p>
+                    : composition === 'text' && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        ※ "텍스트만" 선택 시 이미지 첨부 영역은 숨겨집니다.
+                      </p>
+                    )}
                 </div>
               )}
 
@@ -364,7 +400,9 @@ export default function UploadPage() {
                       onChange={handleFileChange}
                     />
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF 형식 지원</p>
+                  {errors.images
+                    ? <p className="text-xs text-red-500 mt-1">{errors.images}</p>
+                    : <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF 형식 지원</p>}
                 </div>
               )}
 
@@ -397,9 +435,18 @@ export default function UploadPage() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="w-full bg-[#1B3A6B] text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-[#152d55] transition-colors"
+                disabled={isSubmitting}
+                className="w-full bg-[#1B3A6B] text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-[#152d55] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                심의 요청 제출
+                {isSubmitting ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    제출 중...
+                  </>
+                ) : '심의 요청 제출'}
               </button>
               <button
                 type="button"
@@ -417,6 +464,29 @@ export default function UploadPage() {
           </div>
         </div>
       </main>
+
+      {/* 심의 요청 완료 팝업 */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl px-10 py-9 flex flex-col items-center gap-5 min-w-[320px]">
+            <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center">
+              <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div className="text-center">
+              <p className="text-base font-bold text-gray-900 mb-1">심의 요청이 완료되었습니다!</p>
+              <p className="text-sm text-gray-500">담당 자문가에게 전달되었습니다.<br />평균 1.5영업일 내 피드백이 제공됩니다.</p>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="mt-1 w-full py-2.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-xl hover:bg-[#152d55] transition-colors"
+            >
+              메인으로 돌아가기
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

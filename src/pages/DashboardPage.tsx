@@ -117,17 +117,11 @@ export default function DashboardPage() {
             ) : (
               <>
                 <StatusCard
-                  label="검토 대기"
+                  label="대기"
                   count={statusSummary?.pending ?? 0}
                   description="심의 진행 전 콘텐츠"
                   tag="반려 후 재제출 포함"
                   accentColor="border-t-amber-400"
-                />
-                <StatusCard
-                  label="검토 진행"
-                  count={statusSummary?.reviewing ?? 0}
-                  description="심의가 진행 중인 콘텐츠"
-                  accentColor="border-t-sky-400"
                 />
                 <StatusCard
                   label="승인"
@@ -139,8 +133,14 @@ export default function DashboardPage() {
                   label="반려"
                   count={statusSummary?.rejected ?? 0}
                   description="재작성 필요"
-                  tag="재제출 시 → 검토 대기 이동"
+                  tag="재제출 시 → 대기 이동"
                   accentColor="border-t-red-400"
+                />
+                <StatusCard
+                  label="전체"
+                  count={statusSummary?.total ?? 0}
+                  description="누적 제출 콘텐츠"
+                  accentColor="border-t-[#1B3A6B]"
                 />
               </>
             )}

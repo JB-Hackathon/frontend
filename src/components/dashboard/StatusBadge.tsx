@@ -5,10 +5,6 @@ const config: Record<ContentStatus, { label: string; className: string }> = {
     label: '대기',
     className: 'bg-amber-50 text-amber-600 border border-amber-200',
   },
-  reviewing: {
-    label: '검토중',
-    className: 'bg-sky-50 text-sky-600 border border-sky-200',
-  },
   approved: {
     label: '승인',
     className: 'bg-emerald-50 text-emerald-600 border border-emerald-200',

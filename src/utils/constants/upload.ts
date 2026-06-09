@@ -36,7 +36,7 @@ export const FINANCIAL_SUBCATEGORIES = [
 
 export const ADVISORS = [
   { value: 'auto', label: '자동 배정' },
-  { value: 'park', label: '박준법' },
-  { value: 'lee', label: '이감독' },
-  { value: 'choi', label: '최감리' },
+  { value: 'park', label: '백승효' },
+  { value: 'lee', label: '이지원' },
+  { value: 'choi', label: '이종철' },
 ];

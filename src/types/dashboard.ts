@@ -1,6 +1,6 @@
 export type UserRole = 'creator' | 'advisor';
 
-export type ContentStatus = 'pending' | 'reviewing' | 'approved' | 'rejected';
+export type ContentStatus = 'pending' | 'approved' | 'rejected';
 
 export type ContentType = 'homepage' | 'sns' | 'sms' | 'kakao' | 'other';
 
@@ -17,7 +17,6 @@ export interface ContentItem {
 
 export interface StatusSummary {
   pending: number;
-  reviewing: number;
   approved: number;
   rejected: number;
   total: number;
