@@ -46,8 +46,8 @@ export default function DashboardPage() {
   useEffect(() => {
     getContentList({ ...filterParams, page: currentPage, role, userName: user?.name }).then(
       (res) => {
-        setPagedItems(res.items);
-        setTotalItems(res.total);
+        setPagedItems(res.items ?? []);
+        setTotalItems(res.total ?? 0);
       },
     );
   }, [filterParams, currentPage, role, user?.name]);

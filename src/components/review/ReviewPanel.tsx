@@ -223,7 +223,6 @@ export default function ReviewPanel({
     (s, c) => s + c.check_list.filter((i) => i.status === "통과").length,
     0,
   );
-  const progressPct = totalChecks > 0 ? (passCount / totalChecks) * 100 : 0;
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-6 space-y-4">

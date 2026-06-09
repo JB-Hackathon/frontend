@@ -4,7 +4,7 @@ import ContentPanel from "@/components/review/ContentPanel";
 import ReviewPanel from "@/components/review/ReviewPanel";
 import ChatPanel from "@/components/review/ChatPanel";
 import { updateContentStatus } from "@/services/reviewService";
-import { freeChatCards, feedbackVersions } from "@/utils/reviewDummyData";
+import { freeChatCards } from "@/utils/reviewDummyData";
 
 const DEMO_CONFIGS: Record<
   string,
@@ -41,6 +41,7 @@ export default function ReviewPage() {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // 데모 상태: 초기 로드 시 스켈레톤 → v1, 채팅 단계마다 재분석 후 버전 업
   const [reviewVersion, setReviewVersion] = useState<1 | 2 | 3>(1);
@@ -51,18 +52,18 @@ export default function ReviewPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const currentStatus = isRefreshing
-    ? null
-    : feedbackVersions[`v${reviewVersion}`].overallStatus;
+  //   const currentStatus = isRefreshing
+  //     ? null
+  //     : feedbackVersions[`v${reviewVersion}`].overallStatus;
 
-  const handlePrimaryAction = () => {
-    if (currentStatus === "approved") {
-      navigate(`/editor/${demo.contentId}`);
-    } else if (currentStatus === "rejected") {
-      if (id) updateContentStatus(id, "rejected").then(() => navigate("/"));
-      else navigate("/");
-    }
-  };
+  //   const handlePrimaryAction = () => {
+  //     if (currentStatus === "approved") {
+  //       navigate(`/editor/${demo.contentId}`);
+  //     } else if (currentStatus === "rejected") {
+  //       if (id) updateContentStatus(id, "rejected").then(() => navigate("/"));
+  //       else navigate("/");
+  //     }
+  //   };
 
   const handleAdvanceStep = () => {
     setIsRefreshing(true);
@@ -118,6 +119,35 @@ export default function ReviewPage() {
         isDragging ? "cursor-col-resize select-none" : ""
       }`}
     >
+      {/* 에디터 이동 로딩 오버레이 */}
+      {isNavigating && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 bg-white rounded-2xl px-10 py-8 shadow-2xl">
+            <svg
+              className="w-8 h-8 animate-spin text-[#1B3A6B]"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-20"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-80"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8H4z"
+              />
+            </svg>
+            <p className="text-sm font-semibold text-gray-800">
+              에디터 페이지로 이동 중입니다...
+            </p>
+          </div>
+        </div>
+      )}
       {/* ── TOP HEADER ── */}
       <header className="flex items-center gap-3 px-5 h-14 bg-white border-b border-gray-200 shrink-0 min-w-0">
         {/* Left meta */}
@@ -180,10 +210,35 @@ export default function ReviewPage() {
             초안으로 되돌리기
           </button>
           <button
-            onClick={() => navigate(`/editor/${demo.contentId}`)}
-            className="px-4 py-1.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors whitespace-nowrap"
+            onClick={() => {
+              setIsNavigating(true);
+              setTimeout(() => navigate(`/editor/${demo.contentId}`), 1200);
+            }}
+            disabled={isNavigating}
+            className="flex items-center gap-2 px-4 py-1.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors whitespace-nowrap disabled:opacity-80 disabled:cursor-not-allowed"
           >
-            에디터로 이동하기
+            {isNavigating && (
+              <svg
+                className="w-3.5 h-3.5 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                />
+              </svg>
+            )}
+            {isNavigating ? "이동 중..." : "에디터로 이동하기"}
           </button>
         </div>
       </header>

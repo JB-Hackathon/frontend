@@ -44,7 +44,7 @@ export async function getContentList(params: ContentListParams): Promise<Content
     return applyLocalFilters(dummyContentItems, params);
   }
   const { data } = await authClient.get<ContentListResponse>('/contents', { params });
-  return data;
+  return { ...data, items: data.items ?? [], total: data.total ?? 0 };
 }
 
 // 더미 데이터 로컬 필터링 (실제 API 전환 시 제거)
