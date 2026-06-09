@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import AppNavbar from "@/components/layout/AppNavbar";
 import Dropdown from "@/components/common/Dropdown";
 import { JB_AFFILIATES } from "@/utils/constants/JB";
@@ -11,20 +11,28 @@ import {
   ADVISORS,
 } from "@/utils/constants/upload";
 import { useAuth } from "@/contexts/AuthContext";
-import { uploadContent, saveDraft } from "@/services/contentService";
+import { getContentDetail, resubmitContent } from "@/services/contentService";
 import type { ContentType } from "@/types/dashboard";
 
 type Composition = "image" | "text" | "both";
 
-export default function UploadPage() {
+function subTypeToComposition(subType: string): Composition {
+  if (subType.includes("이미지") && subType.includes("텍스트")) return "both";
+  if (subType.includes("이미지")) return "image";
+  return "text";
+}
+
+export default function ResubmitPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
+  const [loading, setLoading] = useState(true);
   const [affiliate, setAffiliate] = useState(user?.affiliate ?? "");
   const [language, setLanguage] = useState("ko");
   const [category, setCategory] = useState("");
   const [financialSub, setFinancialSub] = useState("");
-  const [channel, setChannel] = useState("");
+  const [channel, setChannel] = useState<ContentType | "">("");
   const [advisor, setAdvisor] = useState("auto");
   const [composition, setComposition] = useState<Composition>("both");
   const [title, setTitle] = useState("");
@@ -45,6 +53,17 @@ export default function UploadPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   previewsRef.current = imagePreviews;
+
+  useEffect(() => {
+    if (!id) return;
+    getContentDetail(id).then((content) => {
+      setTitle(content.title);
+      setChannel(content.type);
+      setComposition(subTypeToComposition(content.subType));
+      if (content.caption) setCaption(content.caption);
+      setLoading(false);
+    });
+  }, [id]);
 
   useEffect(() => {
     const onScroll = () => setSidebarStuck(window.scrollY > 60);
@@ -128,16 +147,23 @@ export default function UploadPage() {
     setErrors({});
     setIsSubmitting(true);
     try {
-      await uploadContent(buildPayload());
+      await resubmitContent(id!, buildPayload());
       setShowSuccess(true);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSaveDraft = async () => {
-    await saveDraft(buildPayload());
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <AppNavbar />
+        <main className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+          불러오는 중...
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -146,9 +172,9 @@ export default function UploadPage() {
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
         {/* 헤더 */}
         <div className="mb-6">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3 transition-colors"
+          <Link
+            to={`/content/${id}`}
+            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3 transition-colors w-fit"
           >
             <svg
               className="w-4 h-4"
@@ -163,10 +189,17 @@ export default function UploadPage() {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            메인으로
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">콘텐츠 업로드</h1>
-          <p className="text-sm text-gray-400 mt-0.5">심의 요청을 작성합니다</p>
+            상세로 돌아가기
+          </Link>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-gray-900">콘텐츠 재제출</h1>
+            <span className="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+              {id}
+            </span>
+          </div>
+          <p className="text-sm text-gray-400 mt-0.5">
+            내용을 수정한 후 재심의를 요청합니다
+          </p>
         </div>
 
         {/* 2-column layout */}
@@ -213,7 +246,7 @@ export default function UploadPage() {
                 </div>
               </div>
 
-              {/* 콘텐츠 유형 (법적 분류) */}
+              {/* 콘텐츠 유형 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   콘텐츠 유형 <span className="text-red-500">*</span>
@@ -257,7 +290,6 @@ export default function UploadPage() {
                   <p className="text-xs text-red-500 mt-1">{errors.category}</p>
                 )}
 
-                {/* 금융 상품 광고 세부 분류 */}
                 {category === "financial" && (
                   <div className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
                     <p className="text-xs font-medium text-gray-600 mb-2.5">
@@ -307,7 +339,7 @@ export default function UploadPage() {
                     options={CHANNELS}
                     value={channel}
                     onChange={(v) => {
-                      setChannel(v);
+                      setChannel(v as ContentType);
                       setErrors((p) => ({ ...p, channel: "" }));
                     }}
                     placeholder="채널을 선택하세요"
@@ -445,7 +477,6 @@ export default function UploadPage() {
                 콘텐츠 본문
               </h2>
 
-              {/* 텍스트/카피 - 이미지만 선택 시 숨김 */}
               {composition !== "image" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -477,7 +508,6 @@ export default function UploadPage() {
                 </div>
               )}
 
-              {/* 첨부 이미지 - 텍스트만 선택 시 숨김 */}
               {composition !== "text" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -564,10 +594,15 @@ export default function UploadPage() {
             >
               <div>
                 <h3 className="text-sm font-semibold text-gray-800">
-                  심의 요청
+                  재심의 요청
                 </h3>
                 <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                  작성한 콘텐츠를 준법자문가에게 전달하여 심의를 요청합니다.
+                  수정된 콘텐츠를 준법자문가에게 재전달하여 심의를 요청합니다.
+                </p>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+                <p className="text-xs text-amber-700 leading-relaxed font-medium">
+                  이전 심의 의견을 참고하여 수정 후 제출해 주세요.
                 </p>
               </div>
               <button
@@ -600,15 +635,8 @@ export default function UploadPage() {
                     제출 중...
                   </>
                 ) : (
-                  "심의 요청 제출"
+                  "재심의 요청 제출"
                 )}
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveDraft}
-                className="w-full bg-white text-gray-700 border border-gray-300 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
-              >
-                임시 저장
               </button>
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-xs text-gray-500 leading-relaxed">
@@ -620,7 +648,7 @@ export default function UploadPage() {
         </div>
       </main>
 
-      {/* 심의 요청 완료 팝업 */}
+      {/* 재제출 완료 팝업 */}
       {showSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl px-10 py-9 flex flex-col items-center gap-5 min-w-[320px]">
@@ -641,7 +669,7 @@ export default function UploadPage() {
             </div>
             <div className="text-center">
               <p className="text-base font-bold text-gray-900 mb-1">
-                심의 요청이 완료되었습니다!
+                재심의 요청이 완료되었습니다!
               </p>
               <p className="text-sm text-gray-500">
                 담당 자문가에게 전달되었습니다.

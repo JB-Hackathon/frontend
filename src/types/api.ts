@@ -94,6 +94,7 @@ export interface ContentDetail {
   advisor: string;
   creator: string;
   complianceNo: string;
+  caption?: string;
   reviews: ReviewVersion[];
   relatedContents: { id: string; title: string }[];
 }

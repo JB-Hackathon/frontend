@@ -46,7 +46,7 @@ function ReviewAccordionItem({
             </span>
             <StatusBadge status={review.status} />
           </div>
-          <p className="text-xs text-gray-500 mt-0.5 truncate">
+          <p className="text-xs text-gray-500 mt-2 truncate">
             {review.summary}
           </p>
         </div>
@@ -251,25 +251,27 @@ export default function ContentDetailPage() {
                   </svg>
                   보고서 PDF 다운로드
                 </button>
-                <button
-                  onClick={() => navigate(`/upload?resubmit=${content.id}`)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors font-semibold"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                {content.status === "rejected" && (
+                  <button
+                    onClick={() => navigate(`/content/${content.id}/resubmit`)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-sm bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors font-semibold"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                    />
-                  </svg>
-                  재제출
-                </button>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+                    재제출
+                  </button>
+                )}
                 <button
                   onClick={handleDelete}
                   className="inline-flex items-center gap-1.5 px-4 py-2 text-sm bg-red-50 text-red-500 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
@@ -365,59 +367,205 @@ export default function ContentDetailPage() {
           </div>
 
           {/* Right — Sidebar */}
-          <div className="w-72 shrink-0 space-y-4">
-            {/* Final result */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-              <h3 className="text-sm font-semibold text-gray-800">최종 결과</h3>
+          <div className="w-72 shrink-0 self-stretch">
+            <div className="sticky top-6 space-y-4">
+              {/* Final result */}
+              <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                <h3 className="text-sm font-semibold text-gray-800">
+                  최종 결과
+                </h3>
 
-              <div className="flex items-center gap-2">
-                <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold border ${
-                    finalResultColor[content.status]
-                  }`}
-                >
-                  {finalResultLabel[content.status]}
-                </span>
-                <span className="text-sm text-gray-500">{content.finalAt}</span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold border ${
+                      finalResultColor[content.status]
+                    }`}
+                  >
+                    {finalResultLabel[content.status]}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {content.finalAt}
+                  </span>
+                </div>
+
+                {finalReview && (
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {finalReview.opinion?.general ?? finalReview.summary}
+                  </p>
+                )}
+
+                <div className="pt-1 border-t border-gray-100 space-y-1">
+                  <p className="text-xs text-gray-400 pt-2">
+                    담당 자문가 ·{" "}
+                    <span className="font-semibold text-gray-600">
+                      {content.advisor}
+                    </span>
+                    <span className="text-gray-400"> (마케팅 본부)</span>
+                  </p>
+                </div>
               </div>
 
-              {finalReview && (
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {finalReview.opinion?.general ?? finalReview.summary}
-                </p>
+              {/* Creator next-step actions */}
+              {role === "creator" && (
+                <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-800">
+                    추가 기능
+                  </h3>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() =>
+                        navigate(`/content/${content.id}/ai-revision`)
+                      }
+                      className="w-full flex items-center gap-3 px-3.5 py-3 rounded-lg border border-gray-200 hover:border-[#1B3A6B]/40 hover:bg-blue-50/40 transition-colors text-left group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center shrink-0 group-hover:bg-violet-100 transition-colors">
+                        <svg
+                          className="w-4 h-4 text-violet-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-800">
+                          AI 수정안 생성
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          반려 피드백 기반 자동 수정
+                        </p>
+                      </div>
+                      <svg
+                        className="w-4 h-4 text-gray-300 group-hover:text-[#1B3A6B] transition-colors shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        navigate(`/content/${content.id}/translate`)
+                      }
+                      className="w-full flex items-center gap-3 px-3.5 py-3 rounded-lg border border-gray-200 hover:border-[#1B3A6B]/40 hover:bg-blue-50/40 transition-colors text-left group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center shrink-0 group-hover:bg-sky-100 transition-colors">
+                        <svg
+                          className="w-4 h-4 text-sky-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-800">
+                          AI 다국어 번역
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          승인 콘텐츠 다국어 변환
+                        </p>
+                      </div>
+                      <svg
+                        className="w-4 h-4 text-gray-300 group-hover:text-[#1B3A6B] transition-colors shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+
+                    <button
+                      onClick={() => navigate(`/content/${content.id}/publish`)}
+                      className="w-full flex items-center gap-3 px-3.5 py-3 rounded-lg border border-gray-200 hover:border-[#1B3A6B]/40 hover:bg-blue-50/40 transition-colors text-left group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition-colors">
+                        <svg
+                          className="w-4 h-4 text-emerald-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-800">
+                          채널 게시
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          SNS 채널 연동 게시 라우팅
+                        </p>
+                      </div>
+                      <svg
+                        className="w-4 h-4 text-gray-300 group-hover:text-[#1B3A6B] transition-colors shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               )}
 
-              <div className="pt-1 border-t border-gray-100 space-y-1">
-                <p className="text-xs text-gray-400">
-                  담당 자문가 ·{" "}
-                  <span className="font-semibold text-gray-600">
-                    {content.advisor}
-                  </span>
-                  <span className="text-gray-400"> (마케팅 본부)</span>
-                </p>
+              {/* Related contents */}
+              <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                <h3 className="text-sm font-semibold text-gray-800">
+                  관련 콘텐츠
+                </h3>
+                <ul className="space-y-2">
+                  {content.relatedContents.map((rel) => (
+                    <li key={rel.id}>
+                      <Link
+                        to={`/content/${rel.id}`}
+                        className="text-sm text-[#1B3A6B] hover:underline leading-snug"
+                      >
+                        <span className="font-mono text-xs text-gray-400 mr-1">
+                          {rel.id}
+                        </span>
+                        · {rel.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
-
-            {/* Related contents */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-              <h3 className="text-sm font-semibold text-gray-800">
-                관련 콘텐츠
-              </h3>
-              <ul className="space-y-2">
-                {content.relatedContents.map((rel) => (
-                  <li key={rel.id}>
-                    <Link
-                      to={`/content/${rel.id}`}
-                      className="text-sm text-[#1B3A6B] hover:underline leading-snug"
-                    >
-                      <span className="font-mono text-xs text-gray-400 mr-1">
-                        {rel.id}
-                      </span>
-                      · {rel.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>

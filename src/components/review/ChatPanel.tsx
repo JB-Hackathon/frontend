@@ -1,19 +1,19 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from "react";
 import {
   chatInitialMessages,
   chatStep1,
   chatStep2,
   freeChatInitialMessage,
   freeChatResponses,
-} from '../../utils/reviewDummyData';
-import type { AgentMessage, UserMessage } from '../../utils/reviewDummyData';
+} from "../../utils/reviewDummyData";
+import type { AgentMessage, UserMessage } from "../../utils/reviewDummyData";
 
 type Message = AgentMessage | UserMessage;
 
 interface ChatPanelProps {
   onCollapse: () => void;
   onAdvanceStep: () => void;
-  mode?: 'scripted' | 'free';
+  mode?: "scripted" | "free";
 }
 
 function TypingIndicator() {
@@ -23,9 +23,18 @@ function TypingIndicator() {
         <p className="text-[10px] text-gray-400 mb-1 ml-1">Agent</p>
         <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-3.5 py-2.5">
           <span className="inline-flex items-center gap-1">
-            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <span
+              className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+              style={{ animationDelay: "0ms" }}
+            />
+            <span
+              className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+              style={{ animationDelay: "150ms" }}
+            />
+            <span
+              className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+              style={{ animationDelay: "300ms" }}
+            />
           </span>
         </div>
       </div>
@@ -40,7 +49,7 @@ interface MessageBubbleProps {
 }
 
 function MessageBubble({ msg, canApply, onApply }: MessageBubbleProps) {
-  if (msg.role === 'user') {
+  if (msg.role === "user") {
     return (
       <div className="flex justify-end">
         <div className="max-w-[88%]">
@@ -58,8 +67,10 @@ function MessageBubble({ msg, canApply, onApply }: MessageBubbleProps) {
       <div className="max-w-[88%]">
         <p className="text-[10px] text-gray-400 mb-1 ml-1">Agent</p>
         <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm leading-relaxed">
-          {agent.content.split('\n').map((line, i) => (
-            <p key={i} className={i > 0 ? 'mt-1.5' : ''}>{line}</p>
+          {agent.content.split("\n").map((line, i) => (
+            <p key={i} className={i > 0 ? "mt-1.5" : ""}>
+              {line}
+            </p>
           ))}
           {agent.alternatives && (
             <ol className="mt-2 space-y-1 text-sm">
@@ -102,12 +113,13 @@ function MessageBubble({ msg, canApply, onApply }: MessageBubbleProps) {
 
 function ScriptedChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
   const [chatStep, setChatStep] = useState(0);
-  const [visibleMessages, setVisibleMessages] = useState<Message[]>(chatInitialMessages);
+  const [visibleMessages, setVisibleMessages] =
+    useState<Message[]>(chatInitialMessages);
   const [isAgentTyping, setIsAgentTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [visibleMessages, isAgentTyping]);
 
   const advance = () => {
@@ -115,15 +127,15 @@ function ScriptedChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
     const nextStep = chatStep + 1;
     const [userMsg, agentMsg] = nextStep === 1 ? chatStep1 : chatStep2;
 
-    setVisibleMessages(prev => [...prev, userMsg]);
+    setVisibleMessages((prev) => [...prev, userMsg]);
     setIsAgentTyping(true);
     onAdvanceStep();
 
     setTimeout(() => {
       setIsAgentTyping(false);
-      setVisibleMessages(prev => [...prev, agentMsg]);
+      setVisibleMessages((prev) => [...prev, agentMsg]);
       setChatStep(nextStep);
-    }, 1800);
+    }, 2000);
   };
 
   return (
@@ -150,11 +162,16 @@ function ScriptedChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
             >
               Card 2 표현 더 설명해줘
             </button>
-            {['+ §4-2 인용', '+ 대체 표현 3가지', '+ 한 줄 요약 생성'].map((chip) => (
-              <button key={chip} className="text-xs px-2.5 py-1 border border-gray-200 text-gray-500 rounded-full hover:bg-gray-50 transition-colors">
-                {chip}
-              </button>
-            ))}
+            {["+ §4-2 인용", "+ 대체 표현 3가지", "+ 한 줄 요약 생성"].map(
+              (chip) => (
+                <button
+                  key={chip}
+                  className="text-xs px-2.5 py-1 border border-gray-200 text-gray-500 rounded-full hover:bg-gray-50 transition-colors"
+                >
+                  {chip}
+                </button>
+              ),
+            )}
           </div>
         </div>
       )}
@@ -162,8 +179,15 @@ function ScriptedChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
       {chatStep === 1 && !isAgentTyping && (
         <div className="px-4 pt-2 pb-2 shrink-0">
           <div className="flex flex-wrap gap-1.5">
-            {['+ Card 1 수정 방향 제안', '+ 규정 §4-2 인용', '+ 한 줄 요약 생성'].map((chip) => (
-              <button key={chip} className="text-xs px-2.5 py-1 border border-gray-200 text-gray-500 rounded-full hover:bg-gray-50 transition-colors">
+            {[
+              "+ Card 1 수정 방향 제안",
+              "+ 규정 §4-2 인용",
+              "+ 한 줄 요약 생성",
+            ].map((chip) => (
+              <button
+                key={chip}
+                className="text-xs px-2.5 py-1 border border-gray-200 text-gray-500 rounded-full hover:bg-gray-50 transition-colors"
+              >
                 {chip}
               </button>
             ))}
@@ -174,14 +198,31 @@ function ScriptedChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
       <div className="px-4 pb-4 pt-1.5 shrink-0 border-t border-gray-100">
         <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5">
           <textarea
-            placeholder={chatStep >= 2 ? '심의가 완료되었습니다.' : '피드백을 어떻게 수정할까요?'}
+            placeholder={
+              chatStep >= 2
+                ? "심의가 완료되었습니다."
+                : "피드백을 어떻게 수정할까요?"
+            }
             rows={1}
             disabled={chatStep >= 2}
-            className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:cursor-not-allowed"
+            className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:cursor-not-allowed text-center"
           />
-          <button disabled className="w-7 h-7 bg-[#1B3A6B] text-white rounded-lg flex items-center justify-center opacity-30 cursor-not-allowed shrink-0">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 12h14M12 5l7 7-7 7" />
+          <button
+            disabled
+            className="w-7 h-7 bg-[#1B3A6B] text-white rounded-lg flex items-center justify-center opacity-30 cursor-not-allowed shrink-0"
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M5 12h14M12 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
@@ -190,42 +231,68 @@ function ScriptedChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
   );
 }
 
+const chipMessages: Record<string, string> = {
+  "캐시백 조건 확인":
+    "이 광고에 캐시백 조건이 규정에 맞게 명확히 명시되어 있는지 확인해 주세요.",
+  "단정 표현 수정 제안":
+    "광고 문구 중 단정적인 표현이 포함된 항목을 찾아 수정 방향을 제안해 주세요.",
+  "한 줄 요약 생성":
+    "이 광고의 핵심 내용을 준법 관점에서 한 줄로 요약해 주세요.",
+};
+
 function FreeChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
-  const [visibleMessages, setVisibleMessages] = useState<Message[]>([freeChatInitialMessage]);
+  const [visibleMessages, setVisibleMessages] = useState<Message[]>([
+    freeChatInitialMessage,
+  ]);
   const [isAgentTyping, setIsAgentTyping] = useState(false);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [responseIndex, setResponseIndex] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [visibleMessages, isAgentTyping]);
 
-  const send = () => {
-    const text = input.trim();
+  const send = (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || isAgentTyping) return;
 
-    const userMsg: UserMessage = { id: `user-${Date.now()}`, role: 'user', content: text };
-    setVisibleMessages(prev => [...prev, userMsg]);
-    setInput('');
+    const userMsg: UserMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: text,
+    };
+    setVisibleMessages((prev) => [...prev, userMsg]);
+    setInput("");
     setIsAgentTyping(true);
 
     // ReviewPanel 업데이트는 첫 2번만
     if (responseIndex < 2) onAdvanceStep();
 
     setTimeout(() => {
-      const agentMsg = freeChatResponses[Math.min(responseIndex, freeChatResponses.length - 1)];
+      const agentMsg =
+        freeChatResponses[
+          Math.min(responseIndex, freeChatResponses.length - 1)
+        ];
       setIsAgentTyping(false);
-      setVisibleMessages(prev => [...prev, { ...agentMsg, id: `${agentMsg.id}-${Date.now()}` }]);
-      setResponseIndex(prev => prev + 1);
-    }, 1800);
+      setVisibleMessages((prev) => [
+        ...prev,
+        { ...agentMsg, id: `${agentMsg.id}-${Date.now()}` },
+      ]);
+      setResponseIndex((prev) => prev + 1);
+    }, 2000);
   };
 
   return (
     <>
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {visibleMessages.map((msg) => (
-          <MessageBubble key={msg.id} msg={msg} canApply={false} onApply={() => {}} />
+          <MessageBubble
+            key={msg.id}
+            msg={msg}
+            canApply={false}
+            onApply={() => {}}
+          />
         ))}
         {isAgentTyping && <TypingIndicator />}
         <div ref={messagesEndRef} />
@@ -233,11 +300,12 @@ function FreeChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
 
       <div className="px-4 pt-2 pb-2 shrink-0">
         <div className="flex flex-wrap gap-1.5">
-          {['§4-2 캐시백 조건 확인', '단정 표현 수정 제안', '+ 한 줄 요약 생성'].map((chip) => (
+          {Object.keys(chipMessages).map((chip) => (
             <button
               key={chip}
-              onClick={() => { setInput(chip); }}
-              className="text-xs px-2.5 py-1 border border-gray-200 text-gray-500 rounded-full hover:bg-gray-50 hover:border-gray-300 transition-colors"
+              onClick={() => send(chipMessages[chip])}
+              disabled={isAgentTyping}
+              className="text-xs px-2.5 py-1 border border-gray-200 text-gray-500 rounded-full hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {chip}
             </button>
@@ -246,22 +314,37 @@ function FreeChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
       </div>
 
       <div className="px-4 pb-4 pt-1.5 shrink-0 border-t border-gray-100">
-        <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus-within:border-gray-400 transition-colors">
+        <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-xl px-2 pb-2.5 pt-1 focus-within:border-gray-400 transition-colors">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+              }
+            }}
             placeholder="궁금한 사항을 질문해 주세요."
             rows={1}
             className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none"
           />
           <button
-            onClick={send}
+            onClick={() => send()}
             disabled={!input.trim() || isAgentTyping}
             className="w-7 h-7 bg-[#1B3A6B] text-white rounded-lg flex items-center justify-center hover:bg-[#152d55] transition-colors shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 12h14M12 5l7 7-7 7" />
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M5 12h14M12 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
@@ -270,21 +353,37 @@ function FreeChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
   );
 }
 
-export default function ChatPanel({ onCollapse, onAdvanceStep, mode = 'scripted' }: ChatPanelProps) {
+export default function ChatPanel({
+  onCollapse,
+  onAdvanceStep,
+  mode = "scripted",
+}: ChatPanelProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-start justify-between px-4 py-3 border-b border-gray-100 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full bg-[#1B3A6B] flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            <svg
+              className="w-4 h-4 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
                 d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
               />
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">준법 자문 Agent</p>
-            <p className="text-[11px] text-gray-400">규정 23건 · 사내 가이드 12건 학습</p>
+            <p className="text-sm font-semibold text-gray-900">
+              준법 자문 Agent
+            </p>
+            <p className="text-[11px] text-gray-400">
+              규정 23건 · 사내 가이드 12건 학습
+            </p>
           </div>
         </div>
         <button
@@ -292,16 +391,27 @@ export default function ChatPanel({ onCollapse, onAdvanceStep, mode = 'scripted'
           title="접기"
           className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors mt-0.5"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
       </div>
 
-      {mode === 'free'
-        ? <FreeChat onAdvanceStep={onAdvanceStep} />
-        : <ScriptedChat onAdvanceStep={onAdvanceStep} />
-      }
+      {mode === "free" ? (
+        <FreeChat onAdvanceStep={onAdvanceStep} />
+      ) : (
+        <ScriptedChat onAdvanceStep={onAdvanceStep} />
+      )}
     </div>
   );
 }

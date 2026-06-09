@@ -19,7 +19,7 @@ function LoginPage() {
     const res = await loginApi({ email, password });
     login({
       name: res.user.name,
-      role: import.meta.env.DEV ? mockRole : res.user.role,
+      role: mockRole,
       team: res.user.team,
       affiliate: res.user.affiliate,
     });

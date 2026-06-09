@@ -88,7 +88,7 @@ function ReviewPanelSkeleton() {
         <p className="text-sm text-gray-400 mb-2">
           AI가 피드백을 재분석하고 있습니다.
         </p>
-        <div className="h-1.5 bg-gray-100 rounded-full skeleton-shimmer" />
+        {/* <div className="h-1.5 bg-gray-100 rounded-full skeleton-shimmer" /> */}
       </div>
       <div className="bg-white border border-gray-200 rounded-xl">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 rounded-t-xl">
