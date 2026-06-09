@@ -7,6 +7,9 @@ import DashboardPage from '@/pages/DashboardPage';
 import UploadPage from '@/pages/UploadPage';
 import ContentDetailPage from '@/pages/ContentDetailPage';
 import EditorPage from '@/pages/EditorPage';
+import AIRevisionPage from '@/pages/AIRevisionPage';
+import ChannelPublishPage from '@/pages/ChannelPublishPage';
+import AITranslatePage from '@/pages/AITranslatePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -27,6 +30,9 @@ function AppRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
       <Route path="/content/:id" element={<ProtectedRoute><ContentDetailPage /></ProtectedRoute>} />
+      <Route path="/content/:id/revise" element={<ProtectedRoute><AIRevisionPage /></ProtectedRoute>} />
+      <Route path="/content/:id/publish" element={<ProtectedRoute><ChannelPublishPage /></ProtectedRoute>} />
+      <Route path="/content/:id/translate" element={<ProtectedRoute><AITranslatePage /></ProtectedRoute>} />
       <Route path="/review" element={<ProtectedRoute><ReviewPage /></ProtectedRoute>} />
       <Route path="/review/:id" element={<ProtectedRoute><ReviewPage /></ProtectedRoute>} />
       <Route path="/editor" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />

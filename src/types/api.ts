@@ -92,10 +92,15 @@ export interface CreateBoardRequest {
 export interface BoardItem {
   reviewId: number;
   contentCreatorId: number;
+  contentCreatorName: string;
   complianceAdvisorId: number;
+  complianceAdvisorName: string;
   managementNumber: string;
   reviewApprovalNumber: string | null;
   title: string;
+  channelType: CreateBoardRequest['channelType'];
+  contentType: CreateBoardRequest['contentType'];
+  reviewStatus: ContentStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -125,6 +130,24 @@ export interface ReviewVersionItem {
 export interface ReviewStartResponse {
   reviewBoard: BoardItem;
   latestVersion: ReviewVersionItem;
+}
+
+// GET /reviews/{reviewId} 응답 — 좌측 패널: 제출된 원본 콘텐츠 조회
+export interface ReviewOriginalContent {
+  reviewId: number;
+  contentId: number;
+  title: string;
+  reviewStatus: ContentStatus;
+  managementNumber: string;
+  contentCreatorId: number;
+  contentCreatorName: string;
+  complianceAdvisorId: number;
+  complianceAdvisorName: string;
+  reviewApprovalNumber: string | null;
+  contentText: string | null;
+  contentFilePath: string | null;
+  contentFilePaths: string[];
+  contentFileUrls: string[];
 }
 
 // ─── Content Detail ──────────────────────────────────────────────────────────
@@ -216,6 +239,25 @@ export interface AIChatResponse {
   alternatives?: string[];
   altNote?: string;
   actions?: { primary: string; secondary: string };
+}
+
+// ─── Review Feedback ─────────────────────────────────────────────────────────
+
+export interface ReviewFeedback {
+  reviewId: number;
+  contentId: number;
+  versionNo: number;
+  reviewStatus: ContentStatus;
+  reviewComments: string | null;
+  reviewReports: string | null;
+}
+
+// ─── Review Comments ─────────────────────────────────────────────────────────
+
+export interface ReviewCommentsResult {
+  reviewId: number;
+  contentId: number;
+  reviewComments: string | null;
 }
 
 // ─── Editor ──────────────────────────────────────────────────────────────────

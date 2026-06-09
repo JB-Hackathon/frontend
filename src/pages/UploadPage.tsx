@@ -63,9 +63,9 @@ const PLACEHOLDER_ADVISOR_ID = 2;
 
 // TODO: 서버가 관리번호를 채번하도록 바뀌면 제거
 function generateManagementNumber() {
-  const year = new Date().getFullYear();
-  const seq = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-  return `MGMT-${year}-${seq}`;
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const ts = Date.now().toString(36).toUpperCase();
+  return `MGMT-${date}-${ts}`;
 }
 
 export default function UploadPage() {

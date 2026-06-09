@@ -99,7 +99,7 @@ function ReviewAccordionItem({ review, defaultOpen = false }: { review: ReviewVe
 
       {open && !review.opinion && (
         <div className="px-5 pb-4 ml-5">
-          <p className="text-sm text-gray-400 italic">의견 내용이 없습니다.</p>
+          <p className="text-sm text-gray-700 leading-relaxed">{review.summary || '의견 내용이 없습니다.'}</p>
         </div>
       )}
     </div>
@@ -129,13 +129,21 @@ export default function ContentDetailPage() {
     getReviewVersions(id).then(setReviews);
   }, [id]);
 
+  useEffect(() => {
+    console.log(content)
+  }, [content]);
+  
+
   const handleDownloadReport = async () => {
     if (!content) return;
     const blob = await downloadReport(content.id);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `심의보고서_${content.id}.pdf`;
+    const date = new Date().toISOString().slice(0, 10);
+    const managementNumber = listItem?.managementNumber ?? content.id;
+    const title = (listItem?.title ?? content.title).replace(/[\\/:*?"<>|]/g, '_');
+    a.download = `${date}_${managementNumber}_${title}.pdf`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -212,17 +220,17 @@ export default function ContentDetailPage() {
           <p className="text-sm text-gray-400 flex flex-wrap gap-x-2 gap-y-0.5 items-center">
             <span>{headerTypeLabel}</span>
             <span className="text-gray-300">·</span>
-            <span>{content.subType}</span>
-            <span className="text-gray-300">·</span>
             <span>제출 {headerSubmittedAt}</span>
             <span className="text-gray-300">·</span>
             <span>자문가 {headerAdvisor}</span>
-            <span className="text-gray-300">·</span>
-            <span>
-              {content.status === 'approved' ? '최종 승인' : '최종 반려'} {content.finalAt}
-            </span>
-            <span className="text-gray-300">·</span>
-            <span>심의필 번호: {content.complianceNo}</span>
+            {content.status === 'approved' && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span>최종 승인 {content.finalAt}</span>
+                <span className="text-gray-300">·</span>
+                <span>심의필 번호: {content.complianceNo}</span>
+              </>
+            )}
           </p>
 
           {/* Action buttons */}
@@ -335,20 +343,56 @@ export default function ContentDetailPage() {
                 <span className="text-sm text-gray-500">{content.finalAt}</span>
               </div>
 
-              {finalReview && (
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {finalReview.opinion?.general ?? finalReview.summary}
-                </p>
-              )}
-
               <div className="pt-3 border-t border-gray-100 space-y-1">
                 <p className="text-xs text-gray-400">
                   담당 자문가 : {' '}
                   <span className="font-semibold text-gray-600">{content.advisor}</span>
-                  <span className="text-gray-400"> (마케팅 본부)</span>
                 </p>
               </div>
             </div>
+
+            {/* Next steps / new features */}
+            {role === 'creator' && (
+              <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                <h3 className="text-sm font-semibold text-gray-800">추가 기능</h3>
+
+                <div className="space-y-2">
+                  <button
+                    onClick={() => navigate(`/content/${content.id}/revise`)}
+                    className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors"
+                  >
+                    <span>✦ AI 수정안 만들기</span>
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+
+                  <button
+                    onClick={() => navigate(`/content/${content.id}/publish`)}
+                    className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <span>채널 게시</span>
+                    <svg className="w-4 h-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+
+                  <button
+                    onClick={() => navigate(`/content/${content.id}/translate`)}
+                    className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <span>✦ AI 다국어 변환</span>
+                    <svg className="w-4 h-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                <p className="text-xs text-gray-400 pt-2 border-t border-gray-100">
+                  조건부·반려 → 수정안 / 승인 → 게시·변환
+                </p>
+              </div>
+            )}
 
             {/* Related contents */}
             <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">

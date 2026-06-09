@@ -4,6 +4,7 @@ import type {
   ApiResponse,
   ContentDetail,
   CreateBoardRequest,
+  ReviewOriginalContent,
   ReviewVersion,
   ReviewVersionItem,
   UploadContentRequest,
@@ -41,11 +42,29 @@ const DUMMY_ADVISORS: Advisor[] = [
 
 /**
  * ContentDetailPage / ReviewPage / EditorPage: 콘텐츠 상세 + 심의 이력 조회
+ * id는 reviewId (대시보드 목록의 id와 동일)
  */
 export async function getContentDetail(id: string): Promise<ContentDetail> {
-  if (import.meta.env.DEV) return { ...DUMMY_DETAIL, id };
-  const { data } = await authClient.get<ContentDetail>(`/contents/${id}`);
-  return data;
+  const { data } = await authClient.get<ApiResponse<ReviewOriginalContent>>(`/reviews/${id}`);
+  return mapReviewOriginalContentToDetail(data.data);
+}
+
+function mapReviewOriginalContentToDetail(item: ReviewOriginalContent): ContentDetail {
+  return {
+    id: String(item.reviewId),
+    title: item.title,
+    status: item.reviewStatus,
+    type: 'other', // TODO: API 응답에 채널 유형 필드가 추가되면 매핑
+    typeLabel: '',
+    subType: '',
+    submittedAt: '',
+    finalAt: '',
+    advisor: item.complianceAdvisorName,
+    creator: item.contentCreatorName,
+    complianceNo: item.reviewApprovalNumber ?? '',
+    contentFilePath: item.contentFilePath,
+    relatedContents: DUMMY_DETAIL.relatedContents, // TODO: 관련 콘텐츠 조회 API가 추가되면 매핑
+  };
 }
 
 const REVIEW_STATUS_LABEL: Record<ContentStatus, string> = {

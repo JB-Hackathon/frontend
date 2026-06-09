@@ -4,12 +4,9 @@ import ContentPanel from '@/components/review/ContentPanel';
 import ReviewPanel from '@/components/review/ReviewPanel';
 import ChatPanel from '@/components/review/ChatPanel';
 import StatusBadge from '@/components/dashboard/StatusBadge';
-import { startReview, updateContentStatus } from '@/services/reviewService';
-import type { ReviewStartResponse } from '@/types/api';
+import { updateContentStatus, updateReviewStatus, getReviewOriginalContent } from '@/services/reviewService';
+import type { ReviewOriginalContent } from '@/types/api';
 
-function formatTime(isoString: string) {
-  return new Date(isoString).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-}
 
 const MIN_PANEL_WIDTH = 200;
 const DEFAULT_LEFT_WIDTH = 300;
@@ -29,17 +26,17 @@ export default function ReviewPage() {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [reviewData, setReviewData] = useState<ReviewStartResponse | null>(null);
+  const [originalContent, setOriginalContent] = useState<ReviewOriginalContent | null>(null);
 
   const dragRef = useRef<DragState | null>(null);
 
-  // 검토 시작: 게시글 정보 + 최신 버전 콘텐츠 조회
+  // 원본 콘텐츠 조회
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
-    setReviewData(null);
-    startReview(id).then((data) => {
-      if (!cancelled) setReviewData(data);
+    setOriginalContent(null);
+    getReviewOriginalContent(id).then((data) => {
+      if (!cancelled) setOriginalContent(data);
     });
     return () => {
       cancelled = true;
@@ -97,28 +94,19 @@ export default function ReviewPage() {
           </Link>
 
           <span className="text-gray-300 shrink-0">|</span>
-          <span className="text-sm font-mono text-gray-500 shrink-0">{reviewData?.reviewBoard.managementNumber ?? '-'}</span>
+          <span className="text-sm font-mono text-gray-500 shrink-0">{originalContent?.managementNumber ?? '-'}</span>
           <h1 className="text-sm font-bold text-gray-900 truncate">
-            {reviewData?.reviewBoard.title ?? '제목을 불러오는 중…'}
+            {originalContent?.title ?? '제목을 불러오는 중…'}
           </h1>
-          {reviewData && (
-            <>
-              <span className="text-sm text-gray-400 shrink-0">자동저장 {formatTime(reviewData.reviewBoard.updatedAt)}</span>
-              <span className="shrink-0">
-                <StatusBadge status={reviewData.latestVersion.reviewStatus} />
-              </span>
-            </>
+          {originalContent && (
+            <span className="shrink-0">
+              <StatusBadge status={originalContent.reviewStatus} />
+            </span>
           )}
         </div>
 
         {/* Right actions */}
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => id && updateContentStatus(id, 'rejected').then(() => navigate('/dashboard'))}
-            className="px-3 py-1.5 text-xs border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap"
-          >
-            반려로 처리
-          </button>
           <button
             onClick={() => id && updateContentStatus(id, 'pending').then(() => navigate('/dashboard'))}
             className="px-3 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
@@ -126,10 +114,17 @@ export default function ReviewPage() {
             초안으로 되돌리기
           </button>
           <button
-            onClick={() => navigate('/editor')}
+            onClick={() => {
+              if (!id || !originalContent) return;
+              if (originalContent.reviewStatus === 'approved') {
+                navigate(`/editor/${id}`);
+              } else {
+                updateReviewStatus(originalContent.reviewId, 'rejected').then(() => navigate('/'));
+              }
+            }}
             className="px-4 py-1.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors whitespace-nowrap"
           >
-            에디터로 이동하기
+            확인
           </button>
         </div>
       </header>
@@ -159,7 +154,7 @@ export default function ReviewPage() {
             style={{ width: leftWidth }}
             className="shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-hidden"
           >
-            <ContentPanel onCollapse={() => setLeftCollapsed(true)} version={reviewData?.latestVersion ?? null} />
+            <ContentPanel onCollapse={() => setLeftCollapsed(true)} content={originalContent} />
           </div>
         )}
 
@@ -174,7 +169,7 @@ export default function ReviewPage() {
 
         {/* CENTER */}
         <div className="flex-1 overflow-y-auto">
-          <ReviewPanel />
+          <ReviewPanel reviewId={originalContent?.reviewId} />
         </div>
 
         {/* Divider — right */}

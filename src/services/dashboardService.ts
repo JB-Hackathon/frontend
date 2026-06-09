@@ -3,7 +3,7 @@ import {
   statusSummary as dummyStatusSummary,
   advisorSummary as dummyAdvisorSummary,
 } from '@/utils/dashboardDummyData';
-import type { ContentItem, StatusSummary } from '@/types/dashboard';
+import type { ContentItem, ContentType, StatusSummary } from '@/types/dashboard';
 import type {
   AdvisorSummary,
   ApiResponse,
@@ -11,6 +11,15 @@ import type {
   ContentListParams,
   ContentListResponse,
 } from '@/types/api';
+
+// 서버 channelType → 대시보드 표시용 유형/라벨 매핑
+// (sms/kakao는 백엔드에서 'messenger'로 통합 저장되어 구분이 불가하므로 '메신저'로 표기)
+const CHANNEL_TYPE_LABELS: Record<BoardItem['channelType'], { type: ContentType; label: string }> = {
+  homepage: { type: 'homepage', label: '홈페이지' },
+  sns: { type: 'sns', label: 'SNS' },
+  messenger: { type: 'other', label: '메신저' },
+  other: { type: 'other', label: '기타' },
+};
 
 /**
  * DashboardPage (creator): 심의 상태별 건수 요약
@@ -46,22 +55,22 @@ export async function getAdvisorSummary(): Promise<AdvisorSummary> {
  */
 export async function getContentList(params: ContentListParams): Promise<ContentListResponse> {
   const { data } = await authClient.get<ApiResponse<BoardItem[]>>('/boards/all');
-  const items = data.data.map((board) => mapBoardItemToContentItem(board, params.userName));
+  const items = data.data.map(mapBoardItemToContentItem);
   return applyLocalFilters(items, params);
 }
 
-// TODO: 백엔드 응답에 status/type/제출자·자문가 이름 필드가 추가되면 임시 매핑 제거
-function mapBoardItemToContentItem(board: BoardItem, userName?: string): ContentItem {
+function mapBoardItemToContentItem(board: BoardItem): ContentItem {
+  const { type, label } = CHANNEL_TYPE_LABELS[board.channelType];
   return {
     id: String(board.reviewId),
     managementNumber: board.managementNumber,
     title: board.title,
-    type: 'other',
-    typeLabel: '기타',
-    advisor: String(board.complianceAdvisorId),
-    creator: userName ?? String(board.contentCreatorId),
+    type,
+    typeLabel: label,
+    advisor: board.complianceAdvisorName,
+    creator: board.contentCreatorName,
     submittedAt: board.createdAt.slice(0, 10),
-    status: 'pending',
+    status: board.reviewStatus,
   };
 }
 

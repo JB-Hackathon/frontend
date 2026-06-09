@@ -4,6 +4,9 @@ import type {
   ContentDetail,
   ReviewSubmitRequest,
   ReviewStartResponse,
+  ReviewOriginalContent,
+  ReviewFeedback,
+  ReviewCommentsResult,
   AIChatRequest,
   AIChatResponse,
 } from '@/types/api';
@@ -44,6 +47,24 @@ export async function startReview(boardId: string): Promise<ReviewStartResponse>
 }
 
 /**
+ * ReviewPage (ReviewPanel): 중앙 패널 — 심의 피드백 조회
+ * reviewId 기준으로 심의 상태, 코멘트, 리포트를 받아옴
+ */
+export async function getReviewFeedback(reviewId: number): Promise<ReviewFeedback> {
+  const { data } = await authClient.get<ApiResponse<ReviewFeedback>>(`/reviews/${reviewId}/feedback`);
+  return data.data;
+}
+
+/**
+ * ReviewPage (ContentPanel): 좌측 패널 — 제출된 원본 콘텐츠 조회
+ * reviewId 기준으로 제목/상태/본문 텍스트/첨부 이미지 목록(URL 포함)을 받아옴
+ */
+export async function getReviewOriginalContent(reviewId: string): Promise<ReviewOriginalContent> {
+  const { data } = await authClient.get<ApiResponse<ReviewOriginalContent>>(`/reviews/${reviewId}`);
+  return data.data;
+}
+
+/**
  * ReviewPage: 자문가가 심의 의견 제출 (승인 또는 반려)
  * 제출 후 콘텐츠 상태가 approved/rejected로 변경됨
  */
@@ -73,6 +94,31 @@ export async function updateContentStatus(
 ): Promise<void> {
   if (import.meta.env.DEV) return;
   await authClient.patch(`/contents/${contentId}/status`, { status });
+}
+
+/**
+ * EditorPage: 심의 결과 코멘트 조회
+ * GET /reviews/{reviewId}/comments
+ */
+export async function getReviewComments(reviewId: number): Promise<string | null> {
+  const { data } = await authClient.get<ApiResponse<ReviewCommentsResult>>(`/reviews/${reviewId}/comments`);
+  return data.data.reviewComments;
+}
+
+/**
+ * ReviewPage: 자문가의 심의 최종 상태 업데이트 (승인 / 반려)
+ * POST /reviews/{reviewId}/status
+ */
+export async function updateReviewStatus(
+  reviewId: number,
+  reviewStatus: 'approved' | 'rejected',
+  reviewApprovalNumber?: string,
+): Promise<void> {
+  if (import.meta.env.DEV) return;
+  await authClient.post(`/reviews/${reviewId}/status`, {
+    reviewStatus,
+    ...(reviewApprovalNumber ? { reviewApprovalNumber } : {}),
+  });
 }
 
 /**
