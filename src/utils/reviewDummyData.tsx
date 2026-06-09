@@ -1,3 +1,4 @@
+import type { AIChatResponse } from '../types/api';
 import type { Message } from '../types/review';
 export type { AgentMessage, UserMessage, Message } from '../types/review';
 
@@ -68,6 +69,28 @@ export const cards = [
     lines: ['○○은행 주거래 우대 통장. 오늘 바로 시작하세요.'],
   },
 ];
+
+export const DUMMY_AI_RESPONSES: AIChatResponse[] = [
+  {
+    id: 'ai-1',
+    content: 'Card 1 우대금리 표기, Card 2 단정 표현 2건을 발견했어요. 피드백 초안에 반영했습니다. (3건 적용)',
+    badge: '✓ 피드백 v1 반영됨',
+  },
+  {
+    id: 'ai-2',
+    content: '대체 표현 3가지:',
+    alternatives: [
+      '① "혜택은 한정 기간만 제공됩니다"',
+      '② "조기 마감될 수 있습니다"',
+      '③ "지금 가입 가능한 우대 혜택"',
+    ],
+    altNote: '①·②는 §6-1 위반 가능성 낮음, ③ 권장.',
+    actions: { primary: '적용하기', secondary: '모두 보기' },
+  },
+];
+
+export const DUMMY_AI_SUMMARY =
+  '제출하신 카드뉴스는 광고심의규정 §4-2 및 §6-1 위반 요소가 모두 해소되었습니다.';
 
 export const feedbackDetail = [
   {

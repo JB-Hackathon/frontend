@@ -66,7 +66,7 @@ export const contentItems: ContentItem[] = [
     advisor: '최감리',
     creator: '박민준',
     submittedAt: '2026-05-14',
-    status: 'reviewing',
+    status: 'approved',
   },
   {
     id: 'C-0137',
