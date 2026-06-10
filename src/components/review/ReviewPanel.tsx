@@ -8,22 +8,28 @@ interface ReviewPanelProps {
 }
 
 const LAW_DESCRIPTIONS: Record<string, string> = {
-  "광고심의규정 §4-2":
-    "기본금리와 우대금리를 구분 표기하거나, 우대조건(가입 방법·자동이체 등)을 명확히 병기해야 합니다.",
-  "금융소비자보호법 §22":
-    "금융상품 광고 시 중요 정보를 명확히 표시해야 하며, 소비자를 오인하게 하는 표현을 금지합니다.",
-  "광고심의규정 §6-1":
-    "소비자에게 불안감·긴박감을 조성하거나 사실과 다른 단정적 표현을 사용할 수 없습니다.",
-  "시각광고 가이드라인 §3":
-    "이미지 내 금리·수익률 등 수치 정보에는 조건·단서 문구를 함께 표기해야 합니다.",
-  "내부 브랜드 가이드라인 §2":
+  "표시·광고의 공정화에 관한 법률 제3조 제1항 제3호":
+    "사실과 다르게 소비자를 속이거나 소비자에게 잘못된 정보를 제공하여 소비자를 오인하게 할 우려가 있는 부당한 비교 표시·광고를 금지합니다.",
+  "금융소비자보호법 제32조 제1항":
+    "금융상품판매업자등은 다른 금융상품판매업자등의 영업을 방해하거나 금융소비자를 부당하게 유인하기 위하여 비교 대상 및 기준을 명시하지 않은 비교 표시·광고를 해서는 안 됩니다.",
+  "금소법 제22조 제4항 제3호 가":
+    "금융상품 등에 관한 광고에는 이자율의 범위 및 산정방법을 포함하여 표시해야 하며, 우대조건이 적용된 금리를 일반금리인 것처럼 표시해서는 안 됩니다.",
+  "표시광고법 제3조 제1항 제1호":
+    "거짓 또는 과장된 사실을 알려 소비자를 속이거나 소비자가 잘못 알게 할 우려가 있는 표시·광고를 금지합니다.",
+  "전자금융거래법 제21조 2항(안전성 확보 의무)":
+    "금융회사 및 전자금융업자는 전자금융거래의 안전성과 신뢰성을 확보할 수 있도록 인력, 시설, 전자적 장치 등에 관하여 금융위원회가 정하는 기준을 준수해야 합니다.",
+  "금융소비자보호법 제22조 제2항":
+    "금융상품판매업자등은 광고에 금융상품의 내용을 정확히 전달해야 하며, 보장 범위·요건 등 중요사항을 누락하거나 부풀려서 표시해서는 안 됩니다.",
+  "예금자보호법 제29조 제3항":
+    "예금보험공사는 예금등의 지급을 보장하되, 1인당 보호한도(원금과 이자를 합산하여 5천만원) 내에서 보험금을 지급합니다.",
+  "예금자보호법 제32조 제2항":
+    "예금보험공사 또는 예금자보호제도의 보호 내용을 광고함에 있어 보호한도 등을 사실과 다르게 표시하거나 소비자가 오인하게 해서는 안 됩니다.",
+  "내부 브랜드 가이드라인 제2장":
     "JB은행 공식 CI 색상 및 로고 사용 기준을 규정하며, 무단 변형 및 오용을 금지합니다.",
   "접근성 가이드라인 WCAG 2.1":
     "배경과 텍스트의 명암 대비는 WCAG AA 기준(일반 텍스트 4.5:1 이상)을 충족해야 합니다.",
-  "디지털광고 가이드라인 §5":
+  "디지털광고 가이드라인 제5장":
     "디지털 광고의 CTA 문구 및 앱 다운로드 경로(앱스토어·구글플레이) 표기 기준을 규정합니다.",
-  "광고심의규정 §8-1":
-    '금리·수익률 등 변동 가능한 정보는 "변경될 수 있습니다" 등의 고지가 필수입니다.',
 };
 
 function LawBadge({ law }: { law: string }) {
@@ -92,8 +98,8 @@ function ReviewPanelSkeleton() {
       </div>
       <div className="bg-white border border-gray-200 rounded-xl">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 rounded-t-xl">
-          <div className="h-4 w-20 rounded skeleton-shimmer" />
-          <div className="h-6 w-16 rounded-full skeleton-shimmer" />
+          <h3 className="text-sm font-bold text-gray-900">종합 의견</h3>
+          <AISummaryButton />
         </div>
         <div className="p-5">
           <div className="h-16 rounded-lg skeleton-shimmer" />
@@ -101,9 +107,28 @@ function ReviewPanelSkeleton() {
       </div>
       <SkeletonCard />
       <SkeletonCard />
-      <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
-        <div className="h-4 w-44 rounded skeleton-shimmer" />
-        <div className="h-12 rounded-lg skeleton-shimmer" />
+      <div className="bg-white border border-gray-200 rounded-xl">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-100 rounded-t-xl">
+          <svg
+            className="w-3.5 h-3.5 text-gray-400 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
+          </svg>
+          <h3 className="text-sm font-semibold text-gray-700">
+            제작자에게 전달할 한 줄 요약
+          </h3>
+        </div>
+        <div className="p-5">
+          <div className="h-12 rounded-lg skeleton-shimmer" />
+        </div>
       </div>
     </div>
   );
@@ -215,14 +240,6 @@ export default function ReviewPanel({
 
   const key = `v${version}` as "v1" | "v2" | "v3";
   const data = checklistVersions[key];
-  const totalChecks = data.contentCards.reduce(
-    (s, c) => s + c.check_list.length,
-    0,
-  );
-  const passCount = data.contentCards.reduce(
-    (s, c) => s + c.check_list.filter((i) => i.status === "통과").length,
-    0,
-  );
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-6 space-y-4">
@@ -235,9 +252,6 @@ export default function ReviewPanel({
               v{version} 검토
             </span>
           </div>
-          <span className="text-xs text-gray-400">
-            {passCount}/{totalChecks} 통과
-          </span>
         </div>
         <p className="text-xs text-gray-400 mb-2">
           직접 수정은 2차 페이지에서 가능합니다.

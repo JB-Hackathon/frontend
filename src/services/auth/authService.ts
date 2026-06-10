@@ -1,25 +1,39 @@
 import { setTokens, clearTokens } from '@/utils/storage';
 import type { LoginRequest, LoginResponse, RegisterRequest } from '@/types/api';
+import type { UserRole } from '@/types/dashboard';
 
-const DUMMY_LOGIN: LoginResponse = {
-  accessToken: 'dev-access-token',
-  refreshToken: 'dev-refresh-token',
-  user: {
+const DUMMY_USERS: Record<UserRole, LoginResponse['user']> = {
+  creator: {
     id: 'u-001',
-    name: '김지원',
+    name: '이종철',
     role: 'creator',
     team: '마케팅본부 브랜드팀',
     affiliate: 'jeonbuk-bank',
   },
+  advisor: {
+    id: 'u-002',
+    name: '백승효',
+    role: 'advisor',
+    team: '준법감시실 1팀',
+    affiliate: 'jeonbuk-bank',
+  },
+};
+
+const DUMMY_TOKENS = {
+  accessToken: 'dev-access-token',
+  refreshToken: 'dev-refresh-token',
 };
 
 /**
  * LoginPage: 이메일/사번 + 비밀번호로 로그인
  * 성공 시 토큰을 localStorage에 저장하고 사용자 정보 반환
  */
-export async function login(_data: LoginRequest): Promise<LoginResponse> {
-  setTokens(DUMMY_LOGIN.accessToken, DUMMY_LOGIN.refreshToken);
-  return DUMMY_LOGIN;
+export async function login(data: LoginRequest): Promise<LoginResponse> {
+  setTokens(DUMMY_TOKENS.accessToken, DUMMY_TOKENS.refreshToken);
+  return {
+    ...DUMMY_TOKENS,
+    user: DUMMY_USERS[data.role ?? 'creator'],
+  };
 }
 
 /**

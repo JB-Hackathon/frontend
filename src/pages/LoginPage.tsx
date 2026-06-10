@@ -16,10 +16,10 @@ function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await loginApi({ email, password });
+    const res = await loginApi({ email, password, role: mockRole });
     login({
       name: res.user.name,
-      role: mockRole,
+      role: res.user.role,
       team: res.user.team,
       affiliate: res.user.affiliate,
     });

@@ -8,29 +8,49 @@ import TiptapLink from "@tiptap/extension-link";
 import {
   Table,
   TableRow,
-  TableCell,
-  TableHeader,
+  TableCell as BaseTableCell,
+  TableHeader as BaseTableHeader,
 } from "@tiptap/extension-table";
 import EditorToolbar from "@/components/editor/EditorToolbar";
-import { cards } from "@/utils/reviewDummyData";
-import card01 from "@/assets/card_01.svg";
-import card02 from "@/assets/card_02.svg";
-import card03 from "@/assets/card_03.svg";
+import { submittedContentText } from "@/utils/reviewDummyData";
+import JBImage from "@/assets/JB_image.png";
+import { C0144_TIPTAP_HTML } from "@/utils/editorDummyData";
 
-const cardImages = [card01, card02, card03];
+const cardImages = [JBImage];
 
-const INITIAL_CONTENT = `<h1>준법 자문 검토 보고서 — SNS 카드뉴스 (3종)</h1>
-<p><em>담당자: 김준법 대리 &nbsp;&nbsp;심의 번호: JB-11111-11111</em></p>
-<h2>1. 종합 심의 결과(심의필 번호 : JB-11111-11111)</h2>
-<p><strong>[승인]</strong><br/>
-아래 '4. 수정 및 권고사항'에 명시된 지적 사항을 100% 반영하여 수정하는 조건으로 배포를 승인함. 수정본에 대한 재검토는 생략하나, 최종본 파일은 준법감시실에 아카이빙할 것.</p>
+const cellAttributes = {
+  addAttributes(this: { parent?: () => Record<string, unknown> }) {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.style.cssText || null,
+        renderHTML: (attributes: { style?: string | null }) => {
+          if (!attributes.style) return {};
+          return { style: attributes.style };
+        },
+      },
+    };
+  },
+};
+
+const TableCell = BaseTableCell.extend(cellAttributes);
+const TableHeader = BaseTableHeader.extend(cellAttributes);
+
+const INITIAL_CONTENT = `<h1>준법 자문 검토 보고서</h1>
+<p><em>담당자: 백승효 자문가 &nbsp;&nbsp;심의 번호: JB-2026-C0144</em></p>
+<h2>1. 종합 심의 결과(심의필 번호 : JB-2026-C0144)</h2>
+<p><strong>[최종 승인]</strong><br/>
+이전 차수에서 제시된 준법감시실의 권고 사항이 100% 반영 완료되었기에 최종 배포 및 발행을 승인함. 금융소비자보호법 및 표시광고법 위반 소지가 모두 해소되었으므로, 해당 수정본 시안대로 마케팅을 진행하고 최종본 파일은 아카이빙할 것.</p>
 <h2>2. 심의 개요</h2>
-<p>본 검토는 마케팅팀에서 요청한 신제품 '간 건강 밀크씨슬 편'의 인스타그램 게시용 카드뉴스 초안(총 5장)에 대한 준법 심의 결과입니다. 관련 법령인 '표시·광고의 공정화에 관한 법률(표시광고법)' 및 '식품 등의 표시·광고에 관한 법률'을 기준으로 적법성을 판단했습니다.</p>
-<h2>3. 종합 심의 의견 (조건부 승인)</h2>
-<p>제출된 카드뉴스 시안은 전반적으로 브랜드 아이덴티티를 잘 녹여냈으나, 2번 카드와 4번 카드의 문구에서 소비자 오인의 소지가 있는 '거짓·과장 광고' 및 '의약품 오인 우려' 문구가 발견되었습니다. 해당 항목을 아래 수정 의견에 따라 보완하는 조건으로 최종 승인이 가능합니다.</p>
+<p>본 검토는 마케팅팀에서 배포 요청한 신규 금융상품(C0144)의 인스타그램 등 SNS 채널 게시용 카드뉴스 시안(총 3종) 및 관련 텍스트 카피에 대한 최종 준법 심의 결과입니다. 관련 법령인 '금융소비자보호법 제32조(부당광고행위 금지)' 및 '표시·광고의 공정화에 관한 법률 제3조'를 기준으로 금융소비자 오인 유발 가능성을 판단했습니다.</p>
+<h2>3. 종합 심의 의견 (최종 승인)</h2>
+<p>제출하신 텍스트 및 이미지는 금융소비자보호법 및 표시·광고의 공정화 법률 위반 요소가 모두 해소되었습니다. 발행하셔도 됩니다. 특히 헤드라인의 우대금리 표기 옆에 구체적인 우대조건이 명확히 추가되었으며, "누구나", "놓치면 손해" 등 소비자의 불안감을 조성하거나 단정적인 표현이 수정되어 표시 요건을 안정적으로 충족하고 있습니다.</p>
 <h2>4. 검토 및 수정 의견</h2>
-<p>먼저 1번 카드(인트로 페이지)의 "피로를 지친 당신을 위한 하나의 선택"이라는 문구는 통상적인 상업적 과장 표현(Puffery) 범위 내에 해당하므로 '적합' 판정을 내렸습니다.</p>
-<p>문제가 되는 부분은 2번 카드(성분 성명 페이지)입니다. 시안 내 '타사 대비 5배 강력한 간세포 재생 효과'라는 문구는 표시광고법 제3조 제1항 제1호(거짓·과장의 표시·광고) 위반 소지가 매우 높습니다. 객관적이고 공인된 임상실험 데이터나 시험 성적서 등 실증 자료가 부재한 상태에서 '타사 대비', '5배 강력한 등의 절대적 비교 수치를 사용하는 것은 불법입니다.</p>`;
+<p>먼저 전체 텍스트 및 기본 카피 영역의 경우, 객관적인 비교 기준 없이 경쟁 금융상품 대비 우월성을 단정하던 "국내 최고", "무조건 유리" 표현이 가이드라인에 맞춰 수정되었습니다. 또한 기본금리와 우대금리의 조건부 구조를 감추고 오인을 유발할 수 있었던 "고정 금리", "무조건 보장" 문구가 올바르게 시정되었으며, 안전성 확보 절차 생략 및 예금자보호 범위 과장 표현도 법적 기준에 맞게 보완 완료되었습니다.</p>
+<p>1번 카드(헤드라인 페이지)의 이미지 내 "국내 최고 적금" 문구 옆에 비교 출처 및 명확한 산출 기준이 명시되어 위반 소지를 해소했습니다. 아울러 우대금리 표기 옆에 앱 가입 및 자동이체라는 필수 우대조건이 누락 없이 병기되어 금융소비자보호법을 충족하며, JB은행 공식 CI 색상 및 로고 가이드라인도 철저히 준수하고 있습니다.</p>
+<p>2번 카드(혜택 안내 페이지)의 경우, 기존 시안에서 단서 없이 강조되었던 "최고 11.0% 고정 금리" 문구 주변에 '100일간 100회 납입 시'라는 필수 우대조건 단서가 동등한 위치와 크기로 병기되어 오인 소지를 차단했습니다. 복잡한 절차를 생략할 수 있는 것처럼 표현되었던 본인인증 문구 역시 실제 필수 인증 절차가 필요함을 안내하는 문구로 시정되었으며, 배경과 텍스트의 명암 대비(WCAG AA 기준) 등 시각적 가독성 요건도 훌륭히 만족합니다.</p>
+<p>마지막으로 3번 카드(CTA 페이지)는 디지털 광고 가이드라인 요구사항에 맞춰 앱스토어 및 구글플레이 다운로드 경로가 정상적으로 표기되었습니다. 특히 기존의 "정부가 원금과 이자를 전액 보장"이라는 표현은 무제한 보장으로 오인될 리스크가 컸으나, 예금보험공사의 법정 보호한도(원금과 이자 합산 1인당 5천만 원) 및 보호 주체를 명확히 밝히는 문구로 전면 수정되어 최종 통과 판정을 내렸습니다.</p>`;
 
 interface DragState {
   side: "left" | "right";
@@ -54,18 +74,27 @@ export default function EditorPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [showPublishSuccess, setShowPublishSuccess] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
-  const handleLightboxPrev = useCallback(() => setLightboxIdx((i) => (i !== null && i > 0 ? i - 1 : i)), []);
-  const handleLightboxNext = useCallback(() => setLightboxIdx((i) => (i !== null && i < cardImages.length - 1 ? i + 1 : i)), []);
+  const handleLightboxPrev = useCallback(
+    () => setLightboxIdx((i) => (i !== null && i > 0 ? i - 1 : i)),
+    [],
+  );
+  const handleLightboxNext = useCallback(
+    () =>
+      setLightboxIdx((i) =>
+        i !== null && i < cardImages.length - 1 ? i + 1 : i,
+      ),
+    [],
+  );
 
   useEffect(() => {
     if (lightboxIdx === null) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setLightboxIdx(null);
-      if (e.key === 'ArrowLeft') handleLightboxPrev();
-      if (e.key === 'ArrowRight') handleLightboxNext();
+      if (e.key === "Escape") setLightboxIdx(null);
+      if (e.key === "ArrowLeft") handleLightboxPrev();
+      if (e.key === "ArrowRight") handleLightboxNext();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [lightboxIdx, handleLightboxPrev, handleLightboxNext]);
   const dragRef = useRef<DragState | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -80,7 +109,7 @@ export default function EditorPage() {
       TableCell,
       TableHeader,
     ],
-    content: INITIAL_CONTENT,
+    content: C0144_TIPTAP_HTML,
     editorProps: {
       attributes: {
         class:
@@ -392,10 +421,24 @@ export default function EditorPage() {
                       onClick={() => setLightboxIdx(i)}
                       className="group flex-1 rounded-lg border border-gray-200 overflow-hidden bg-gray-50 relative cursor-zoom-in"
                     >
-                      <img src={src} alt={`Card ${i + 1}`} className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105" />
+                      <img
+                        src={src}
+                        alt={`Card ${i + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                      />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                        <svg
+                          className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 drop-shadow"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
+                          />
                         </svg>
                       </div>
                     </button>
@@ -408,13 +451,8 @@ export default function EditorPage() {
                 <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
                   텍스트
                 </h3>
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {cards.flatMap((card, ci) =>
-                    card.lines.flatMap((line, li) => {
-                      const isLast = ci === cards.length - 1 && li === card.lines.length - 1;
-                      return [<span key={`${ci}-${li}`}>{line}</span>, !isLast ? ' ' : null];
-                    })
-                  )}
+                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {submittedContentText}
                 </p>
               </section>
             </div>
@@ -529,42 +567,86 @@ export default function EditorPage() {
             onClick={() => setLightboxIdx(null)}
             className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); handleLightboxPrev(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLightboxPrev();
+            }}
             disabled={lightboxIdx === 0}
             className="absolute left-4 p-2.5 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors disabled:opacity-20"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
           <div
             className="relative max-w-lg w-full mx-16 flex flex-col items-center gap-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <img src={cardImages[lightboxIdx]} alt={`Card ${lightboxIdx + 1}`} className="w-full rounded-xl shadow-2xl" />
+            <img
+              src={cardImages[lightboxIdx]}
+              alt={`Card ${lightboxIdx + 1}`}
+              className="w-full rounded-xl shadow-2xl"
+            />
             <div className="flex items-center gap-2">
               {cardImages.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setLightboxIdx(i)}
-                  className={`h-1.5 rounded-full transition-all ${i === lightboxIdx ? 'bg-white w-4' : 'bg-white/40 w-1.5'}`}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === lightboxIdx ? "bg-white w-4" : "bg-white/40 w-1.5"
+                  }`}
                 />
               ))}
             </div>
-            <span className="text-white/50 text-xs">Card {lightboxIdx + 1} · {lightboxIdx + 1} / {cardImages.length}</span>
+            <span className="text-white/50 text-xs">
+              Card {lightboxIdx + 1} · {lightboxIdx + 1} / {cardImages.length}
+            </span>
           </div>
           <button
-            onClick={(e) => { e.stopPropagation(); handleLightboxNext(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLightboxNext();
+            }}
             disabled={lightboxIdx === cardImages.length - 1}
             className="absolute right-4 p-2.5 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors disabled:opacity-20"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>

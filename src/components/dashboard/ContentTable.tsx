@@ -24,7 +24,7 @@ export default function ContentTable({ items, role }: Props) {
     });
   };
 
-  const advisorColumnLabel = role === 'advisor' ? '제출자' : '담당 자문가';
+  const advisorColumnLabel = '담당 자문가';
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -42,6 +42,7 @@ export default function ContentTable({ items, role }: Props) {
             <th className="px-4 py-3 text-left text-xs font-semibold text-[#1B3A6B] w-28">관리번호</th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[#1B3A6B]">제목</th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[#1B3A6B] w-32">유형</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-[#1B3A6B] w-28">제작자</th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[#1B3A6B] w-28">{advisorColumnLabel}</th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[#1B3A6B] w-28">제출일</th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[#1B3A6B] w-24">상태</th>
@@ -65,14 +66,9 @@ export default function ContentTable({ items, role }: Props) {
               <td className="px-4 py-4 font-mono text-gray-400 text-xs">{item.id}</td>
               <td className="px-4 py-4 font-medium text-gray-800">{item.title}</td>
               <td className="px-4 py-4 text-gray-500">{item.typeLabel}</td>
+              <td className="px-4 py-4 text-gray-600">{item.creator}</td>
               <td className="px-4 py-4 text-gray-600">
-                {role === 'advisor' ? item.creator : (
-                  item.advisor ? (
-                    item.advisor
-                  ) : (
-                    <span className="text-gray-400 text-xs">배정 대기</span>
-                  )
-                )}
+                {item.advisor ?? <span className="text-gray-400 text-xs">배정 대기</span>}
               </td>
               <td className="px-4 py-4 text-gray-500 tabular-nums whitespace-nowrap">{item.submittedAt}</td>
               <td className="px-4 py-4">
@@ -101,7 +97,7 @@ export default function ContentTable({ items, role }: Props) {
 
           {items.length === 0 && (
             <tr>
-              <td colSpan={8} className="py-16 text-center text-sm text-gray-400">
+              <td colSpan={9} className="py-16 text-center text-sm text-gray-400">
                 해당하는 콘텐츠가 없습니다.
               </td>
             </tr>

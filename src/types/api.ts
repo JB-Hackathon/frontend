@@ -7,6 +7,7 @@ export type { StatusSummary };
 export interface LoginRequest {
   email: string;
   password: string;
+  role?: UserRole;
 }
 
 export interface LoginResponse {

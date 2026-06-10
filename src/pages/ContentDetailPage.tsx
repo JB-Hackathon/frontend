@@ -169,9 +169,12 @@ export default function ContentDetailPage() {
     );
   }
 
-  const finalReview = content.reviews.find(
-    (r) => r.status === "approved" || r.status === "rejected",
-  );
+  const finalReview =
+    content.status !== "pending"
+      ? content.reviews.find(
+          (r) => r.status === "approved" || r.status === "rejected",
+        )
+      : undefined;
 
   const finalResultLabel: Record<ContentStatus, string> = {
     approved: "승인",
@@ -219,13 +222,21 @@ export default function ContentDetailPage() {
             <span>제출 {content.submittedAt}</span>
             <span className="text-gray-300">·</span>
             <span>자문가 {content.advisor}</span>
-            <span className="text-gray-300">·</span>
-            <span>
-              {content.status === "approved" ? "최종 승인" : "최종 반려"}{" "}
-              {content.finalAt}
-            </span>
-            <span className="text-gray-300">·</span>
-            <span>심의필 번호: {content.complianceNo}</span>
+            {content.status !== "pending" && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span>
+                  {content.status === "approved" ? "최종 승인" : "최종 반려"}{" "}
+                  {content.finalAt}
+                </span>
+                {content.status === "approved" && (
+                  <>
+                    <span className="text-gray-300">·</span>
+                    <span>심의필 번호: {content.complianceNo}</span>
+                  </>
+                )}
+              </>
+            )}
           </p>
 
           {/* Action buttons */}

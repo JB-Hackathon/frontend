@@ -4,7 +4,7 @@ import ContentPanel from "@/components/review/ContentPanel";
 import ReviewPanel from "@/components/review/ReviewPanel";
 import ChatPanel from "@/components/review/ChatPanel";
 import { updateContentStatus } from "@/services/reviewService";
-import { freeChatCards } from "@/utils/reviewDummyData";
+import { checklistVersions } from "@/utils/reviewDummyData";
 
 const DEMO_CONFIGS: Record<
   string,
@@ -16,7 +16,7 @@ const DEMO_CONFIGS: Record<
     mode: "scripted",
   },
   "C-0144": {
-    title: "JB체크카드 혜택 안내 · 온라인 배너 (2종)",
+    title: "JB은행 도전 루틴적금 온라인 배너",
     contentId: "C-0144",
     mode: "free",
   },
@@ -52,18 +52,30 @@ export default function ReviewPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  //   const currentStatus = isRefreshing
-  //     ? null
-  //     : feedbackVersions[`v${reviewVersion}`].overallStatus;
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
 
-  //   const handlePrimaryAction = () => {
-  //     if (currentStatus === "approved") {
-  //       navigate(`/editor/${demo.contentId}`);
-  //     } else if (currentStatus === "rejected") {
-  //       if (id) updateContentStatus(id, "rejected").then(() => navigate("/"));
-  //       else navigate("/");
-  //     }
-  //   };
+  const currentStatus = isRefreshing
+    ? null
+    : checklistVersions[`v${reviewVersion}`].overallStatus;
+
+  const handlePrimaryAction = () => {
+    if (currentStatus === "approved") {
+      setIsNavigating(true);
+      setTimeout(() => navigate(`/editor/${demo.contentId}`), 1200);
+    } else if (currentStatus === "rejected") {
+      setShowRejectConfirm(true);
+    }
+  };
+
+  const handleConfirmReject = () => {
+    setIsRejecting(true);
+    if (id) {
+      updateContentStatus(id, "rejected").then(() => navigate("/"));
+    } else {
+      navigate("/");
+    }
+  };
 
   const handleAdvanceStep = () => {
     setIsRefreshing(true);
@@ -190,17 +202,6 @@ export default function ReviewPage() {
           <button
             onClick={() =>
               id &&
-              updateContentStatus(id, "rejected").then(() =>
-                navigate("/dashboard"),
-              )
-            }
-            className="px-3 py-1.5 text-xs border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap"
-          >
-            반려로 처리
-          </button>
-          <button
-            onClick={() =>
-              id &&
               updateContentStatus(id, "pending").then(() =>
                 navigate("/dashboard"),
               )
@@ -209,39 +210,79 @@ export default function ReviewPage() {
           >
             초안으로 되돌리기
           </button>
-          <button
-            onClick={() => {
-              setIsNavigating(true);
-              setTimeout(() => navigate(`/editor/${demo.contentId}`), 1200);
-            }}
-            disabled={isNavigating}
-            className="flex items-center gap-2 px-4 py-1.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors whitespace-nowrap disabled:opacity-80 disabled:cursor-not-allowed"
-          >
-            {isNavigating && (
-              <svg
-                className="w-3.5 h-3.5 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                />
-              </svg>
-            )}
-            {isNavigating ? "이동 중..." : "에디터로 이동하기"}
-          </button>
+          {currentStatus === "rejected" ? (
+            <button
+              onClick={handlePrimaryAction}
+              disabled={isRejecting}
+              className="flex items-center gap-2 px-4 py-1.5 text-sm font-semibold border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isRejecting ? "처리 중..." : "반려 처리"}
+            </button>
+          ) : (
+            <button
+              onClick={handlePrimaryAction}
+              disabled={isNavigating || currentStatus === null}
+              className="flex items-center gap-2 px-4 py-1.5 text-sm font-semibold bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors whitespace-nowrap disabled:opacity-80 disabled:cursor-not-allowed"
+            >
+              {isNavigating && (
+                <svg
+                  className="w-3.5 h-3.5 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  />
+                </svg>
+              )}
+              {isNavigating ? "이동 중..." : "확인"}
+            </button>
+          )}
         </div>
       </header>
+
+      {/* 반려 처리 확인 팝업 */}
+      {showRejectConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="flex flex-col gap-4 bg-white rounded-2xl px-7 py-6 shadow-2xl w-full max-w-sm mx-4">
+            <div>
+              <h3 className="text-base font-bold text-gray-900 mb-1.5">
+                반려로 처리하시겠습니까?
+              </h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                반려 처리 시 메인 화면으로 이동하며, 해당 콘텐츠는 반려 상태로
+                변경됩니다.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 mt-1">
+              <button
+                onClick={() => setShowRejectConfirm(false)}
+                disabled={isRejecting}
+                className="px-3.5 py-1.5 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmReject}
+                disabled={isRejecting}
+                className="px-3.5 py-1.5 text-sm font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-60"
+              >
+                {isRejecting ? "처리 중..." : "반려 처리"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── THREE PANELS ── */}
       <div className="flex flex-1 overflow-hidden">
@@ -280,10 +321,7 @@ export default function ReviewPage() {
             style={{ width: leftWidth }}
             className="shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-hidden"
           >
-            <ContentPanel
-              onCollapse={() => setLeftCollapsed(true)}
-              cards={demo.mode === "free" ? freeChatCards : undefined}
-            />
+            <ContentPanel onCollapse={() => setLeftCollapsed(true)} />
           </div>
         )}
 

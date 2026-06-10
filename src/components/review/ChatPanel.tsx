@@ -162,7 +162,7 @@ function ScriptedChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
             >
               Card 2 표현 더 설명해줘
             </button>
-            {["+ §4-2 인용", "+ 대체 표현 3가지", "+ 한 줄 요약 생성"].map(
+            {["+ 전자금융거래법 제21조 인용", "+ 대체 표현 3가지", "+ 한 줄 요약 생성"].map(
               (chip) => (
                 <button
                   key={chip}
@@ -181,7 +181,7 @@ function ScriptedChat({ onAdvanceStep }: { onAdvanceStep: () => void }) {
           <div className="flex flex-wrap gap-1.5">
             {[
               "+ Card 1 수정 방향 제안",
-              "+ 규정 §4-2 인용",
+              "+ 규정 전자금융거래법 제21조 인용",
               "+ 한 줄 요약 생성",
             ].map((chip) => (
               <button
