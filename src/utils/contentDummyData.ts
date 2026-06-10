@@ -87,7 +87,7 @@ export const DUMMY_CONTENT_DETAIL_C0144: ContentDetail = {
   id: 'C-0144',
   status: 'approved',
   finalAt: '2026-05-18',
-  complianceNo: 'JB-111111-111111',
+  complianceNo: 'JB-2026-0121',
   reviews: C0144_REVIEWS,
 };
 
@@ -120,6 +120,107 @@ export const DUMMY_CONTENT_DETAIL_C0141: ContentDetail = {
   finalAt: '2026-05-17',
   complianceNo: '',
   reviews: C0144_REVIEWS.filter((r) => r.version <= 2),
+};
+
+// C-0140: JB뱅크 앱 푸시 알림 + 메인 배너 (파킹통장) — 최종 승인
+const C0140_REVIEWS: ContentDetail['reviews'] = [
+  {
+    version: 4,
+    label: '최종 승인',
+    status: 'approved',
+    date: '2026-06-10 11:40',
+    reviewer: '이지원 자문가',
+    summary: '권고 사항 반영 완료. 최종 승인',
+    hasAISummary: true,
+    opinion: {
+      general:
+        '수정하신 푸시 알림 및 메인 배너 문구는 금융소비자보호법 및 표시·광고의 공정화 법률 위반 요소가 모두 해소되었습니다. 발행하셔도 됩니다.',
+      items: [
+        'CTA 버튼 하단에 \'준법감시인 심의필 제140호\' 문구가 추가되어 표시 의무 사항을 충족합니다.',
+        '서브 카피에 \'세전 연 2.3% (기본금리 기준, 시장 상황에 따라 변동될 수 있음)\' 안내가 병기되어 금리 오인 소지가 해소되었습니다.',
+        '푸시 알림 제목의 이모지가 절제된 형태로 수정되어 이벤트성 과장 표현 우려가 해소되었습니다.',
+      ],
+      regulations: [
+        '금융소비자 보호에 관한 법률 제22조 제3항 (금리 등 중요사항 표기)',
+        '표시·광고의 공정화에 관한 법률 제4조 (표시·광고 사항의 공시)',
+        '사내 마케팅 가이드 G-2024-11',
+      ],
+    },
+  },
+  {
+    version: 3,
+    label: '재제출',
+    status: 'pending',
+    date: '2026-06-09 16:20',
+    reviewer: '이종철 대리(콘텐츠팀)',
+    summary: '반려 권고 사항 반영하여 재제출 · 자문가 재검토 대기',
+    opinion: null,
+  },
+  {
+    version: 2,
+    label: '반려',
+    status: 'rejected',
+    date: '2026-06-09 10:05',
+    reviewer: '이지원 자문가',
+    summary: 'CTA 심의필 문구 누락 및 금리 표기 보완 권고',
+    opinion: {
+      general:
+        '제출하신 푸시 알림 및 메인 배너 문구 중 일부가 금융소비자보호법 및 표시·광고의 공정화에 관한 법률 기준에 부합하지 않아 수정 후 재제출이 필요합니다.',
+      items: [
+        'CTA 버튼 하단에 \'준법감시인 심의필\' 문구가 누락되어 표시·광고 의무 표기 사항을 위반합니다. 버튼 하단에 심의필 번호를 명시해 주세요.',
+        '서브 카피 \'하루만 맡겨도 이자가 차곡차곡 쌓이는\'은 적용 금리 수준을 특정하지 않아 소비자 오인 소지가 있습니다. 현재 적용 금리와 변동 가능성 안내 문구 추가가 필요합니다.',
+        '푸시 알림 제목의 이모지(💰)는 금융상품 광고에서 과도한 이벤트성 표현으로 오인될 수 있어 자제를 권고드립니다.',
+      ],
+      regulations: [
+        '금융소비자 보호에 관한 법률 제22조 제3항 (금리 등 중요사항 표기)',
+        '표시·광고의 공정화에 관한 법률 제4조 (표시·광고 사항의 공시)',
+        '사내 마케팅 가이드 G-2024-11',
+      ],
+    },
+  },
+  {
+    version: 1,
+    label: '최초 제출',
+    status: 'pending',
+    date: '2026-06-08 14:50',
+    reviewer: '이종철 대리(콘텐츠팀)',
+    summary: '초안 제출 · 자문가 배정 대기',
+    opinion: null,
+  },
+];
+
+export const DUMMY_CONTENT_DETAIL_C0140: ContentDetail = {
+  id: 'C-0140',
+  title: 'JB뱅크 앱 푸시 알림 & 메인 배너 (파킹통장)',
+  status: 'approved',
+  type: 'other',
+  typeLabel: '카카오톡',
+  subType: '푸시 알림 + 메인 배너',
+  submittedAt: '2026-06-08',
+  finalAt: '2026-06-10',
+  advisor: '이지원',
+  creator: '이종철',
+  complianceNo: 'JB-2026-0135',
+  canPublishToChannel: true,
+  caption: `[타겟] JB뱅크 앱 접속 및 푸시 알림 동의 고객
+
+[푸시 알림 텍스트]
+제목: 여유 자금, 그냥 두기 아쉬울 때?
+내용: 매일매일 이자가 쌓이는 파킹통장, 지금 JB앱에서 터치 한 번으로 확인해보세요!
+
+[앱 메인 배너 텍스트]
+메인 카피: 내 지갑 속 든든한 예비 자금
+서브 카피: 하루만 맡겨도 이자가 차곡차곡 쌓이는 JB 파킹통장 (세전 연 2.3%, 기본금리 기준)
+CTA 버튼: 자세히 보기 (하단 '준법감시인 심의필 제140호' 문구 기재)
+
+[이미지 및 디자인 디렉션]
+- 인간의 시선 흐름(Human Visual Flow)을 고려하여 좌측 상단에 핵심 카피를, 우측 하단에 부드러운 3D 그래픽 객체(동전이 쌓여가는 깔끔한 모션 이미지)를 배치
+- CTA 버튼 등에는 심미적 인터랙션이 돋보이는 애니메이션 효과를 적용하고, 여백을 충분히 활용하여 시각적 피로감 없이 심리적 안정감을 느끼며 클릭을 유도`,
+  reviews: C0140_REVIEWS,
+  relatedContents: [
+    { id: 'C-0139', title: 'JB 파킹통장 출시 안내 카카오톡 메시지' },
+    { id: 'C-0135', title: 'JB뱅크 앱 메인 배너 (이전 캠페인)' },
+  ],
 };
 
 export const DUMMY_ADVISORS: Advisor[] = [

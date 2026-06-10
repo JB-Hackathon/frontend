@@ -3,15 +3,16 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AppNavbar from "@/components/layout/AppNavbar";
 import StatusBadge from "@/components/dashboard/StatusBadge";
-import {
-  getContentDetail,
-  deleteContent,
-  downloadReport,
-} from "@/services/contentService";
+import { getContentDetail, deleteContent } from "@/services/contentService";
+import reportPdf from "@/assets/jb_report.pdf";
 import type { ContentDetail, ReviewVersion } from "@/types/api";
 import type { ContentStatus } from "@/types/dashboard";
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
+
+function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`skeleton-shimmer rounded ${className}`} />;
+}
 
 const dotColor: Record<ContentStatus, string> = {
   approved: "bg-emerald-400",
@@ -21,9 +22,11 @@ const dotColor: Record<ContentStatus, string> = {
 
 function ReviewAccordionItem({
   review,
+  originalContent,
   defaultOpen = false,
 }: {
   review: ReviewVersion;
+  originalContent?: string;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -117,7 +120,26 @@ function ReviewAccordionItem({
         </div>
       )}
 
-      {open && !review.opinion && (
+      {open && !review.opinion && review.label === "최초 제출" && (
+        <div className="px-5 pb-5 ml-5">
+          <p className="text-xs font-semibold text-[#1B3A6B] mb-1.5">
+            원본 콘텐츠
+          </p>
+          {originalContent ? (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {originalContent}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">
+              원본 콘텐츠 정보가 없습니다.
+            </p>
+          )}
+        </div>
+      )}
+
+      {open && !review.opinion && review.label !== "최초 제출" && (
         <div className="px-5 pb-4 ml-5">
           <p className="text-sm text-gray-400 italic">의견 내용이 없습니다.</p>
         </div>
@@ -138,16 +160,24 @@ export default function ContentDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    getContentDetail(id).then(setContent);
+    setContent(null);
+    const start = Date.now();
+    getContentDetail(id).then((data) => {
+      const elapsed = Date.now() - start;
+      const remaining = Math.max(0, 2000 - elapsed);
+      setTimeout(() => setContent(data), remaining);
+    });
   }, [id]);
 
   const handleDownloadReport = async () => {
     if (!content) return;
-    const blob = await downloadReport(content.id);
+
+    const res = await fetch(reportPdf);
+    const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `심의보고서_${content.id}.pdf`;
+    a.download = `${content.finalAt}_심의보고서_${content.id}.pdf`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -158,19 +188,8 @@ export default function ContentDetailPage() {
     navigate("/dashboard");
   };
 
-  if (!content) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <AppNavbar />
-        <main className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-          불러오는 중...
-        </main>
-      </div>
-    );
-  }
-
   const finalReview =
-    content.status !== "pending"
+    content && content.status !== "pending"
       ? content.reviews.find(
           (r) => r.status === "approved" || r.status === "rejected",
         )
@@ -206,62 +225,88 @@ export default function ContentDetailPage() {
         {/* Header */}
         <div className="space-y-3">
           <div className="flex items-center gap-2.5">
-            <span className="font-mono text-sm font-semibold text-gray-400">
-              {content.id}
-            </span>
-            <StatusBadge status={content.status} />
-          </div>
-
-          <h1 className="text-2xl font-bold text-gray-900">{content.title}</h1>
-
-          <p className="text-sm text-gray-400 flex flex-wrap gap-x-2 gap-y-0.5 items-center">
-            <span>{content.typeLabel}</span>
-            <span className="text-gray-300">·</span>
-            <span>{content.subType}</span>
-            <span className="text-gray-300">·</span>
-            <span>제출 {content.submittedAt}</span>
-            <span className="text-gray-300">·</span>
-            <span>자문가 {content.advisor}</span>
-            {content.status !== "pending" && (
+            {content ? (
               <>
-                <span className="text-gray-300">·</span>
-                <span>
-                  {content.status === "approved" ? "최종 승인" : "최종 반려"}{" "}
-                  {content.finalAt}
+                <span className="font-mono text-sm font-semibold text-gray-400">
+                  {content.id}
                 </span>
-                {content.status === "approved" && (
-                  <>
-                    <span className="text-gray-300">·</span>
-                    <span>심의필 번호: {content.complianceNo}</span>
-                  </>
-                )}
+                <StatusBadge status={content.status} />
+              </>
+            ) : (
+              <>
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-5 w-14 rounded-full" />
               </>
             )}
-          </p>
+          </div>
+
+          {content ? (
+            <h1 className="text-2xl font-bold text-gray-900">
+              {content.title}
+            </h1>
+          ) : (
+            <Skeleton className="h-7 w-1/2" />
+          )}
+
+          {content ? (
+            <p className="text-sm text-gray-400 flex flex-wrap gap-x-2 gap-y-0.5 items-center">
+              <span>{content.typeLabel}</span>
+              <span className="text-gray-300">·</span>
+              <span>{content.subType}</span>
+              <span className="text-gray-300">·</span>
+              <span>제출 {content.submittedAt}</span>
+              <span className="text-gray-300">·</span>
+              <span>자문가 {content.advisor}</span>
+              {content.status !== "pending" && (
+                <>
+                  <span className="text-gray-300">·</span>
+                  <span>
+                    {content.status === "approved" ? "최종 승인" : "최종 반려"}{" "}
+                    {content.finalAt}
+                  </span>
+                  {content.status === "approved" && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <span>심의필 번호: {content.complianceNo}</span>
+                    </>
+                  )}
+                </>
+              )}
+            </p>
+          ) : (
+            <Skeleton className="h-4 w-2/3" />
+          )}
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 pt-1">
-            {role === "creator" ? (
+            {!content ? (
               <>
-                <button
-                  onClick={handleDownloadReport}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <Skeleton className="h-9 w-40 rounded-lg" />
+                <Skeleton className="h-9 w-24 rounded-lg" />
+              </>
+            ) : role === "creator" ? (
+              <>
+                {content.status === "approved" && (
+                  <button
+                    onClick={handleDownloadReport}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  보고서 PDF 다운로드
-                </button>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    보고서 PDF 다운로드
+                  </button>
+                )}
                 {content.status === "rejected" && (
                   <button
                     onClick={() => navigate(`/content/${content.id}/resubmit`)}
@@ -305,44 +350,48 @@ export default function ContentDetailPage() {
               </>
             ) : (
               <>
-                <button
-                  onClick={handleDownloadReport}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                {content.status === "approved" && (
+                  <button
+                    onClick={handleDownloadReport}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  보고서 PDF 다운로드
-                </button>
-                <button
-                  onClick={() => navigate(`/review/${content.id}`)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors font-semibold"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    보고서 PDF 다운로드
+                  </button>
+                )}
+                {role === "advisor" && content.status === "pending" && (
+                  <button
+                    onClick={() => navigate(`/review/${content.id}`)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-sm bg-[#1B3A6B] text-white rounded-lg hover:bg-[#152d55] transition-colors font-semibold"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                    />
-                  </svg>
-                  검토하기
-                </button>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
+                    </svg>
+                    검토하기
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -357,9 +406,13 @@ export default function ContentDetailPage() {
                 <h2 className="text-sm font-semibold text-gray-800">
                   심의 의견
                 </h2>
-                <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">
-                  총 {content.reviews.length}개
-                </span>
+                {content ? (
+                  <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">
+                    총 {content.reviews.length}개
+                  </span>
+                ) : (
+                  <Skeleton className="h-5 w-12 rounded-full" />
+                )}
               </div>
               <span className="text-xs text-gray-400">
                 최신순 · 항목 클릭 시 펼침
@@ -367,13 +420,32 @@ export default function ContentDetailPage() {
             </div>
 
             <div>
-              {content.reviews.map((review, i) => (
-                <ReviewAccordionItem
-                  key={review.version}
-                  review={review}
-                  defaultOpen={i === 0}
-                />
-              ))}
+              {content ? (
+                content.reviews.map((review, i) => (
+                  <ReviewAccordionItem
+                    key={review.version}
+                    review={review}
+                    originalContent={content.caption}
+                    defaultOpen={i === 0}
+                  />
+                ))
+              ) : (
+                <div className="p-5 space-y-5">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <Skeleton className="mt-1.5 w-2 h-2 rounded-full shrink-0" />
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-3 w-2/3" />
+                      </div>
+                      <div className="shrink-0 space-y-2">
+                        <Skeleton className="h-3 w-16" />
+                        <Skeleton className="h-3 w-12" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -386,43 +458,142 @@ export default function ContentDetailPage() {
                   최종 결과
                 </h3>
 
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold border ${
-                      finalResultColor[content.status]
-                    }`}
-                  >
-                    {finalResultLabel[content.status]}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {content.finalAt}
-                  </span>
-                </div>
+                {content ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold border ${
+                          finalResultColor[content.status]
+                        }`}
+                      >
+                        {finalResultLabel[content.status]}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {content.finalAt}
+                      </span>
+                    </div>
 
-                {finalReview && (
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {finalReview.opinion?.general ?? finalReview.summary}
-                  </p>
+                    {finalReview && (
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        {finalReview.opinion?.general ?? finalReview.summary}
+                      </p>
+                    )}
+
+                    <div className="pt-1 border-t border-gray-100 space-y-1">
+                      <p className="text-xs text-gray-400 pt-2">
+                        담당 자문가 ·{" "}
+                        <span className="font-semibold text-gray-600">
+                          {content.advisor}
+                        </span>
+                        <span className="text-gray-400"> (마케팅 본부)</span>
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-3">
+                    <Skeleton className="h-7 w-20 rounded-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <div className="pt-1 border-t border-gray-100">
+                      <Skeleton className="h-3 w-2/3 mt-2" />
+                    </div>
+                  </div>
                 )}
-
-                <div className="pt-1 border-t border-gray-100 space-y-1">
-                  <p className="text-xs text-gray-400 pt-2">
-                    담당 자문가 ·{" "}
-                    <span className="font-semibold text-gray-600">
-                      {content.advisor}
-                    </span>
-                    <span className="text-gray-400"> (마케팅 본부)</span>
-                  </p>
-                </div>
               </div>
 
               {/* Creator next-step actions */}
-              {role === "creator" && (
+              {!content && role === "creator" && (
+                <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                  <Skeleton className="h-4 w-16" />
+                  <div className="space-y-2">
+                    {[0, 1, 2].map((i) => (
+                      <Skeleton key={i} className="h-15 w-full rounded-lg" />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {content && role === "creator" && (
                 <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
                   <h3 className="text-sm font-semibold text-gray-800">
                     추가 기능
                   </h3>
                   <div className="space-y-2">
+                    <button
+                      onClick={() =>
+                        content.canPublishToChannel &&
+                        navigate(`/content/${content.id}/publish`)
+                      }
+                      disabled={!content.canPublishToChannel}
+                      className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-lg border text-left group transition-colors ${
+                        content.canPublishToChannel
+                          ? "border-emerald-200 bg-emerald-50/50 hover:border-emerald-300 hover:bg-emerald-50"
+                          : "border-gray-200 opacity-50 cursor-not-allowed"
+                      }`}
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                          content.canPublishToChannel
+                            ? "bg-emerald-100 group-hover:bg-emerald-200"
+                            : "bg-gray-100"
+                        }`}
+                      >
+                        <svg
+                          className={`w-4 h-4 ${
+                            content.canPublishToChannel
+                              ? "text-emerald-600"
+                              : "text-gray-400"
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-semibold text-gray-800">
+                            채널 게시
+                          </p>
+                          {content.canPublishToChannel ? (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-600">
+                              사용 가능
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-400">
+                              사용 불가
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          SNS 채널 연동 게시 라우팅
+                        </p>
+                      </div>
+                      <svg
+                        className={`w-4 h-4 shrink-0 transition-colors ${
+                          content.canPublishToChannel
+                            ? "text-gray-300 group-hover:text-[#1B3A6B]"
+                            : "text-gray-300"
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+
                     <button
                       onClick={() =>
                         navigate(`/content/${content.id}/ai-revision`)
@@ -510,48 +681,6 @@ export default function ContentDetailPage() {
                         />
                       </svg>
                     </button>
-
-                    <button
-                      onClick={() => navigate(`/content/${content.id}/publish`)}
-                      className="w-full flex items-center gap-3 px-3.5 py-3 rounded-lg border border-gray-200 hover:border-[#1B3A6B]/40 hover:bg-blue-50/40 transition-colors text-left group"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition-colors">
-                        <svg
-                          className="w-4 h-4 text-emerald-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                          />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-800">
-                          채널 게시
-                        </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          SNS 채널 연동 게시 라우팅
-                        </p>
-                      </div>
-                      <svg
-                        className="w-4 h-4 text-gray-300 group-hover:text-[#1B3A6B] transition-colors shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </button>
                   </div>
                 </div>
               )}
@@ -561,21 +690,29 @@ export default function ContentDetailPage() {
                 <h3 className="text-sm font-semibold text-gray-800">
                   관련 콘텐츠
                 </h3>
-                <ul className="space-y-2">
-                  {content.relatedContents.map((rel) => (
-                    <li key={rel.id}>
-                      <Link
-                        to={`/content/${rel.id}`}
-                        className="text-sm text-[#1B3A6B] hover:underline leading-snug"
-                      >
-                        <span className="font-mono text-xs text-gray-400 mr-1">
-                          {rel.id}
-                        </span>
-                        · {rel.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                {content ? (
+                  <ul className="space-y-2">
+                    {content.relatedContents.map((rel) => (
+                      <li key={rel.id}>
+                        <Link
+                          to={`/content/${rel.id}`}
+                          className="text-sm text-[#1B3A6B] hover:underline leading-snug"
+                        >
+                          <span className="font-mono text-xs text-gray-400 mr-1">
+                            {rel.id}
+                          </span>
+                          · {rel.title}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-4/6" />
+                  </div>
+                )}
               </div>
             </div>
           </div>

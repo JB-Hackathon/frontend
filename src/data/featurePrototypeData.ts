@@ -65,21 +65,27 @@ export const aiTranslateDummyData = {
 };
 
 export const channelPublishDummyData = {
-  managementNumber: 'CNT-2024-00138',
+  managementNumber: 'JB-014000-014000',
   statusLabel: '승인',
   flowLabel: '채널 게시',
-  title: '글로벌 디지털 뱅킹 서비스 런칭 캠페인',
-  cards: [
-    { id: 'card-1', label: '1/3' },
-    { id: 'card-2', label: '2/3' },
-    { id: 'card-3', label: '3/3' },
-  ],
+  title: 'JB뱅크 앱 푸시 알림 & 메인 배너 (파킹통장)',
+  cards: [] as { id: string; label: string }[],
   cardsNote: '콘텐츠 카드를 클릭하면 크게 볼 수 있습니다.',
   caption:
-    '언제 어디서나 스마트한 금융 생활을 시작하세요 💳 JB디지털뱅크와 함께라면 복잡한 금융을 간편하게 관리할 수 있습니다. 지금 바로 앱을 다운로드하고 특별 혜택을 받아보세요! #JB디지털뱅크 #스마트금융 #디지털뱅킹',
+    '여유 자금, 그냥 두기 아쉬울 때? 💰 하루만 맡겨도 이자가 차곡차곡 쌓이는 JB 파킹통장(세전 연 2.3%, 기본금리 기준)! 지금 JB앱에서 터치 한 번으로 확인해보세요. #JB파킹통장 #여유자금 #JB뱅크 (준법감시인 심의필 제140호)',
   captionTag: 'AI 자동 생성',
   captionNote: '캡션을 직접 수정하려면 클릭하세요.',
   channels: [
+    {
+      id: 'kakao-jb',
+      iconLetter: 'KK',
+      name: 'JB금융 카카오톡 채널',
+      handle: '@jbfinancial',
+      checked: true,
+      disabled: false,
+      badgeTone: 'connected',
+      badgeLabel: '연결됨',
+    },
     {
       id: 'instagram-jb',
       iconLetter: 'IG',

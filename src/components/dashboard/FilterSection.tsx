@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import type { ContentType, UserRole } from '@/types/dashboard';
+import type { ContentStatus, ContentType, UserRole } from '@/types/dashboard';
 
 const CONTENT_TYPES: { value: ContentType | 'all'; label: string }[] = [
   { value: 'all', label: '전체' },
@@ -12,9 +12,26 @@ const CONTENT_TYPES: { value: ContentType | 'all'; label: string }[] = [
 
 type SortOption = 'latest' | 'title' | 'submitted';
 
+type StatusFilter = ContentStatus | 'all';
+
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: 'all', label: '전체' },
+  { value: 'approved', label: '승인만 보기' },
+  { value: 'rejected', label: '반려만 보기' },
+  { value: 'pending', label: '대기만 보기' },
+];
+
 interface Props {
   role: UserRole;
-  onFilter?: (types: (ContentType | 'all')[], sort: SortOption, myOnly: boolean, query: string, dateFrom: string, dateTo: string) => void;
+  onFilter?: (
+    types: (ContentType | 'all')[],
+    sort: SortOption,
+    myOnly: boolean,
+    query: string,
+    dateFrom: string,
+    dateTo: string,
+    status: StatusFilter,
+  ) => void;
 }
 
 function formatDate(value: string) {
@@ -28,6 +45,7 @@ export default function FilterSection({ role, onFilter }: Props) {
   const [selectedTypes, setSelectedTypes] = useState<(ContentType | 'all')[]>(['all']);
   const [sort, setSort] = useState<SortOption>('latest');
   const [myOnly, setMyOnly] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -55,7 +73,7 @@ export default function FilterSection({ role, onFilter }: Props) {
     setDateFrom(tempFrom);
     setDateTo(tempTo);
     setShowDatePicker(false);
-    onFilter?.(selectedTypes, sort, myOnly, query, tempFrom, tempTo);
+    onFilter?.(selectedTypes, sort, myOnly, query, tempFrom, tempTo, statusFilter);
   };
 
   const clearDate = () => {
@@ -64,7 +82,7 @@ export default function FilterSection({ role, onFilter }: Props) {
     setDateFrom('');
     setDateTo('');
     setShowDatePicker(false);
-    onFilter?.(selectedTypes, sort, myOnly, query, '', '');
+    onFilter?.(selectedTypes, sort, myOnly, query, '', '', statusFilter);
   };
 
   const toggleType = (type: ContentType | 'all') => {
@@ -76,23 +94,28 @@ export default function FilterSection({ role, onFilter }: Props) {
       next = selectedTypes.includes(type) ? (without.length ? without : ['all']) : [...without, type];
     }
     setSelectedTypes(next);
-    onFilter?.(next, sort, myOnly, query, dateFrom, dateTo);
+    onFilter?.(next, sort, myOnly, query, dateFrom, dateTo, statusFilter);
   };
 
   const handleSort = (s: SortOption) => {
     setSort(s);
-    onFilter?.(selectedTypes, s, myOnly, query, dateFrom, dateTo);
+    onFilter?.(selectedTypes, s, myOnly, query, dateFrom, dateTo, statusFilter);
   };
 
   const handleMyOnly = () => {
     setMyOnly((v) => {
-      onFilter?.(selectedTypes, sort, !v, query, dateFrom, dateTo);
+      onFilter?.(selectedTypes, sort, !v, query, dateFrom, dateTo, statusFilter);
       return !v;
     });
   };
 
   const handleSearch = () => {
-    onFilter?.(selectedTypes, sort, myOnly, query, dateFrom, dateTo);
+    onFilter?.(selectedTypes, sort, myOnly, query, dateFrom, dateTo, statusFilter);
+  };
+
+  const handleStatus = (status: StatusFilter) => {
+    setStatusFilter(status);
+    onFilter?.(selectedTypes, sort, myOnly, query, dateFrom, dateTo, status);
   };
 
   const myOnlyLabel = role === 'advisor' ? '내 담당만 보기' : '내 콘텐츠만 보기';
@@ -241,6 +264,26 @@ export default function FilterSection({ role, onFilter }: Props) {
         </div>
       </div>
 
+      {/* Status filter */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-sm font-medium text-gray-500 shrink-0">상태별 보기:</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          {STATUS_FILTERS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => handleStatus(value)}
+              className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                statusFilter === value
+                  ? 'border-[#1B3A6B] bg-[#1B3A6B] text-white font-medium'
+                  : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Sort + reset */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -274,7 +317,8 @@ export default function FilterSection({ role, onFilter }: Props) {
             setMyOnly(false);
             setDateFrom('');
             setDateTo('');
-            onFilter?.(['all'], 'latest', false, '', '', '');
+            setStatusFilter('all');
+            onFilter?.(['all'], 'latest', false, '', '', '', 'all');
           }}
           className="flex items-center gap-1.5 text-sm text-[#1B3A6B] hover:underline"
         >

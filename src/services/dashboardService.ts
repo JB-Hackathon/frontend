@@ -27,8 +27,8 @@ function applyLocalFilters(
   const page = params.page ?? 1;
   const pageSize = params.pageSize ?? 10;
 
-  if (statuses && statuses.length > 0 && !statuses.includes('pending' as never)) {
-    // 'all' 처리가 없으면 필터 적용
+  if (statuses && statuses.length > 0) {
+    result = result.filter((item) => statuses.includes(item.status));
   }
 
   if (types && types.length > 0) {
@@ -59,6 +59,14 @@ function applyLocalFilters(
     result.sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
   } else {
     result.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+  }
+
+  if (role === 'advisor') {
+    result.sort((a, b) => {
+      if (a.status === 'pending' && b.status !== 'pending') return -1;
+      if (a.status !== 'pending' && b.status === 'pending') return 1;
+      return 0;
+    });
   }
 
   const total = result.length;

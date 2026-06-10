@@ -2,18 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AppNavbar from "@/components/layout/AppNavbar";
 import { channelPublishDummyData } from "@/data/featurePrototypeData";
-import previewImage1 from "@/assets/card_01.svg";
-import previewImage2 from "@/assets/card_02.svg";
-import previewImage3 from "@/assets/card_03.svg";
-
-const CARD_PREVIEW_IMAGES = [previewImage1, previewImage2, previewImage3];
 
 export default function ChannelPublishPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const data = channelPublishDummyData;
   const [scheduleId, setScheduleId] = useState(data.selectedScheduleId);
-  const [openCardIndex, setOpenCardIndex] = useState<number | null>(null);
   const [selectedChannelIds, setSelectedChannelIds] = useState<Set<string>>(
     () =>
       new Set(
@@ -165,35 +159,25 @@ export default function ChannelPublishPage() {
       </div>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-6 space-y-5">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
-          <h2 className="text-sm font-bold text-gray-800">게시할 콘텐츠</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {data.cards.map((card, index) => (
-              <button
-                key={card.id}
-                type="button"
-                onClick={() => setOpenCardIndex(index)}
-                title="클릭하면 확대해서 볼 수 있어요"
-                className="group relative aspect-[4/3] rounded-lg border border-gray-200 overflow-hidden bg-gray-50 hover:border-[#1B3A6B]/40 transition-colors"
-              >
-                <img
-                  src={CARD_PREVIEW_IMAGES[index % CARD_PREVIEW_IMAGES.length]}
-                  alt={card.label}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-[1.03]"
-                />
-                <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-black/55 text-white backdrop-blur-sm">
-                  {card.label}
-                </span>
-                <span className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs font-medium text-white px-2.5 py-1 rounded-full bg-black/50">
-                    크게 보기
+        {data.cards.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+            <h2 className="text-sm font-bold text-gray-800">게시할 콘텐츠</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {data.cards.map((card) => (
+                <div
+                  key={card.id}
+                  className="relative aspect-4/3 rounded-lg border border-dashed border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center"
+                >
+                  <span className="text-xs text-gray-300">이미지 없음</span>
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-black/55 text-white backdrop-blur-sm">
+                    {card.label}
                   </span>
-                </span>
-              </button>
-            ))}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400">{data.cardsNote}</p>
           </div>
-          <p className="text-xs text-gray-400">{data.cardsNote}</p>
-        </div>
+        )}
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
           <div className="flex items-center gap-2">
@@ -305,41 +289,6 @@ export default function ChannelPublishPage() {
           )}
         </div>
       </main>
-
-      {openCardIndex !== null && (
-        <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-8"
-          onClick={() => setOpenCardIndex(null)}
-        >
-          <img
-            src={
-              CARD_PREVIEW_IMAGES[openCardIndex % CARD_PREVIEW_IMAGES.length]
-            }
-            alt={data.cards[openCardIndex].label}
-            className="max-w-full max-h-full rounded-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <button
-            onClick={() => setOpenCardIndex(null)}
-            title="닫기"
-            className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-      )}
 
       {publishState === "done" && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6">

@@ -59,12 +59,12 @@ export const contentItems: ContentItem[] = [
   },
   {
     id: 'C-0140',
-    title: '청년 도약 적금 카카오톡 알림톡 문구',
-    type: 'kakao',
+    title: 'JB뱅크 앱 푸시 알림 & 메인 배너 (파킹통장)',
+    type: 'other',
     typeLabel: '카카오톡',
     advisor: '이지원',
     creator: '이종철',
-    submittedAt: '2026-05-16',
+    submittedAt: '2026-06-08',
     status: 'approved',
   },
   {

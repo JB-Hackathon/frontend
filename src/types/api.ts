@@ -98,6 +98,7 @@ export interface ContentDetail {
   caption?: string;
   reviews: ReviewVersion[];
   relatedContents: { id: string; title: string }[];
+  canPublishToChannel?: boolean;
 }
 
 // ─── Upload ──────────────────────────────────────────────────────────────────
